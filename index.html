@@ -1481,6 +1481,14 @@
     };
     let selectedProduct = null;
     let isSubmitting = false;
+    let currentStep = 0;
+    let questions = [];
+    let userData = {
+      company: '', business_type: '', industry: '', business_career: '',
+      employee_count: 0, patent_count: 0, has_machine: '', online_sales: '', offline_store: '',
+      kiosk: '', delivery: '', reservation: '', average_sales: 0,
+      sales_growth: '', mortgage_loan: 0, credit_loan: 0, KCB: 0, NICE: 0, overdue: ''
+    };
 
     // ============ 분석 모달 함수 ============
     function openAnalysisModal() {
@@ -1671,23 +1679,36 @@
       
       const fd = new FormData();
       const now = new Date();
-      fd.append('작업날짜', now.toLocaleDateString('ko-KR'));
-      fd.append('작업시간', now.toLocaleTimeString('ko-KR'));
       
-      // 사업자 정보
-      fd.append('사업자분류', userData.company || '');
-      fd.append('사업자종류', userData.business_type || '');
+      // 기본 정보
+      fd.append('작업 날짜', now.toLocaleDateString('ko-KR'));
+      fd.append('작업 시간', now.toLocaleTimeString('ko-KR'));
+      
+      // 사업자 정보 (submitConsultForm과 동일)
+      fd.append('사업장명(상호)', userData.company || '');
+      fd.append('사업자 형태', userData.business_type || '');
       fd.append('업종', userData.industry || '');
-      fd.append('업력', userData.business_career || '');
-      fd.append('특허여부', userData.patent_count > 0 ? '있음' : '없음');
-      fd.append('기계설비여부', userData.has_machine || '');
-      fd.append('연간매출액', userData.average_sales ? `${userData.average_sales}만원` : '');
-      fd.append('매출성장률', userData.sales_growth || '');
-      fd.append('담보대출잔액', userData.mortgage_loan ? `${userData.mortgage_loan}만원` : '0');
-      fd.append('신용대출잔액', userData.credit_loan ? `${userData.credit_loan}만원` : '0');
+      fd.append('사업자 업력', userData.business_career || '');
+      fd.append('상시 근로자 수', userData.employee_count || 0);
+      fd.append('기업 분류 (자동 판단)', '분석 전 신청');
+      fd.append('특허 보유 수', userData.patent_count || 0);
+      fd.append('기계/설비 보유', userData.has_machine || '');
+      fd.append('온라인 판매 여부', userData.online_sales || '');
+      fd.append('오프라인 매장', userData.offline_store || '');
+      fd.append('키오스크 사용', userData.kiosk || '');
+      fd.append('배달앱 사용', userData.delivery || '');
+      fd.append('숙박앱 사용', userData.reservation || '');
+      fd.append('연평균 매출액', userData.average_sales ? `${userData.average_sales}만원` : '');
+      fd.append('2년간 10%이상 성장', userData.sales_growth || '');
+      fd.append('담보대출 잔액', userData.mortgage_loan ? `${userData.mortgage_loan}만원` : '0');
+      fd.append('신용대출 잔액', userData.credit_loan ? `${userData.credit_loan}만원` : '0');
       fd.append('KCB 신용점수', userData.KCB || '');
       fd.append('NICE 신용점수', userData.NICE || '');
       fd.append('연체/체납 여부', userData.overdue || '');
+      fd.append('예상 대출 한도', '상담사 분석 예정');
+      fd.append('예상 금리', '상담사 분석 예정');
+      fd.append('추천 상품 목록', '상담사 분석 예정');
+      fd.append('분석 일시', now.toLocaleString('ko-KR'));
       fd.append('신청유형', '분석 전 신청');
       fd.append('UTM source', sessionStorage.getItem('utm_source') || '');
       fd.append('UTM medium', sessionStorage.getItem('utm_medium') || '');
@@ -2060,15 +2081,6 @@
         method: '보증서부 대출',
         desc: '재창업 기업 특례보증'
       }
-    };
-
-    let currentStep = 0;
-    let questions = [];
-    let userData = {
-      company: '', business_type: '', industry: '', business_career: '',
-      employee_count: 0, patent_count: 0, has_machine: '', online_sales: '', offline_store: '',
-      kiosk: '', delivery: '', reservation: '', average_sales: 0,
-      sales_growth: '', mortgage_loan: 0, credit_loan: 0, KCB: 0, NICE: 0, overdue: ''
     };
 
     // 소상공인/중소기업 판단 함수
