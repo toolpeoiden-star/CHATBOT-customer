@@ -1575,10 +1575,18 @@
       const now = new Date();
       const phoneNumber = `${phone1}-${phone2}-${phone3}`;
       
-      // FormData 생성
+      // 추천 상품 목록 (선택한 상품이 있으면 맨 앞에 표시)
+      let productNames = analysisResult.products ? analysisResult.products.map(p => p.name) : [];
+      if (selectedProduct) {
+        productNames = [selectedProduct.name + ' (선택)', ...productNames.filter(n => n !== selectedProduct.name)];
+      }
+      
+      // FormData 생성 - 스프레드시트 열 순서대로
       const fd = new FormData();
       fd.append('작업 날짜', now.toLocaleDateString('ko-KR'));
       fd.append('작업 시간', now.toLocaleTimeString('ko-KR'));
+      fd.append('성함(이름)', name);
+      fd.append('연락처', phoneNumber);
       fd.append('사업장명(상호)', userData.company || '');
       fd.append('사업자 형태', userData.business_type || '');
       fd.append('업종', userData.industry || '');
@@ -1601,19 +1609,10 @@
       fd.append('연체/체납 여부', userData.overdue || '');
       fd.append('예상 대출 한도', analysisResult.limit ? formatLimit(analysisResult.limit) : '');
       fd.append('예상 금리', analysisResult.rate ? `${analysisResult.rate}%` : '');
-      
-      // 추천 상품 목록 (선택한 상품이 있으면 맨 앞에 표시)
-      let productNames = analysisResult.products.map(p => p.name);
-      if (selectedProduct) {
-        productNames = [selectedProduct.name + ' (선택)', ...productNames.filter(n => n !== selectedProduct.name)];
-      }
       fd.append('추천 상품 목록', productNames.join(', '));
-      
       fd.append('분석 일시', now.toLocaleString('ko-KR'));
-      fd.append('유입경로', sessionStorage.getItem('first_referrer') || 'UNKNOWN');
       fd.append('개인정보수집동의', '동의');
-      fd.append('성함(이름)', name);
-      fd.append('연락처', phoneNumber);
+      fd.append('유입경로', sessionStorage.getItem('first_referrer') || 'UNKNOWN');
       
       fetch(SHEET_URL, {
         method: 'POST',
@@ -1680,11 +1679,11 @@
       const fd = new FormData();
       const now = new Date();
       
-      // 기본 정보
+      // 스프레드시트 열 순서대로 전송
       fd.append('작업 날짜', now.toLocaleDateString('ko-KR'));
       fd.append('작업 시간', now.toLocaleTimeString('ko-KR'));
-      
-      // 사업자 정보 (submitConsultForm과 동일)
+      fd.append('성함(이름)', name);
+      fd.append('연락처', phoneNumber);
       fd.append('사업장명(상호)', userData.company || '');
       fd.append('사업자 형태', userData.business_type || '');
       fd.append('업종', userData.industry || '');
@@ -1709,14 +1708,8 @@
       fd.append('예상 금리', '상담사 분석 예정');
       fd.append('추천 상품 목록', '상담사 분석 예정');
       fd.append('분석 일시', now.toLocaleString('ko-KR'));
-      fd.append('신청유형', '분석 전 신청');
-      fd.append('UTM source', sessionStorage.getItem('utm_source') || '');
-      fd.append('UTM medium', sessionStorage.getItem('utm_medium') || '');
-      fd.append('UTM campaign', sessionStorage.getItem('utm_campaign') || '');
-      fd.append('유입경로', sessionStorage.getItem('first_referrer') || 'UNKNOWN');
       fd.append('개인정보수집동의', '동의');
-      fd.append('성함(이름)', name);
-      fd.append('연락처', phoneNumber);
+      fd.append('유입경로', sessionStorage.getItem('first_referrer') || 'UNKNOWN');
       
       fetch(SHEET_URL, {
         method: 'POST',
