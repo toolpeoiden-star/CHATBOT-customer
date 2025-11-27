@@ -1487,7 +1487,7 @@
       company: '', business_type: '', industry: '', business_career: '',
       employee_count: 0, patent_count: 0, has_machine: '', online_sales: '', offline_store: '',
       kiosk: '', delivery: '', reservation: '', average_sales: 0,
-      sales_growth: '', mortgage_loan: 0, credit_loan: 0, KCB: 0, NICE: 0, overdue: ''
+      sales_growth: '', mortgage_loan: 0, credit_loan: 0, KCB: 0, NICE: 0, overdue: '', recovery_history: ''
     };
 
     // ============ 분석 모달 함수 ============
@@ -1607,6 +1607,7 @@
       fd.append('KCB 신용점수', userData.KCB || '');
       fd.append('NICE 신용점수', userData.NICE || '');
       fd.append('연체/체납 여부', userData.overdue || '');
+      fd.append('개인회생 파산 신용회복 이력', userData.recovery_history || '');
       fd.append('예상 대출 한도', analysisResult.limit ? formatLimit(analysisResult.limit) : '');
       fd.append('예상 금리', analysisResult.rate ? `${analysisResult.rate}%` : '');
       fd.append('추천 상품 목록', productNames.join(', '));
@@ -1704,6 +1705,7 @@
       fd.append('KCB 신용점수', userData.KCB || '');
       fd.append('NICE 신용점수', userData.NICE || '');
       fd.append('연체/체납 여부', userData.overdue || '');
+      fd.append('개인회생 파산 신용회복 이력', userData.recovery_history || '');
       fd.append('예상 대출 한도', '상담사 분석 예정');
       fd.append('예상 금리', '상담사 분석 예정');
       fd.append('추천 상품 목록', '상담사 분석 예정');
@@ -2121,7 +2123,8 @@
         { key: 'credit_loan', text: '현재 신용대출 잔액을 입력해주세요.\n(단위: 만원)\n\n💡 기존 부채가 적을수록 승인 확률 UP!', type: 'number', placeholder: '없으면 0', section: '대출 정보' },
         { key: 'KCB', text: 'KCB 신용점수를 입력해주세요.\n\n💡 모르시면 카카오뱅크 앱이나 토스에서\n쉽게 확인 가능해요!', type: 'number', placeholder: '예: 750', section: '신용 정보' },
         { key: 'NICE', text: 'NICE 신용점수를 입력해주세요.\n\n💡 모르시면 카카오뱅크 앱이나 토스에서\n쉽게 확인 가능해요!', type: 'number', placeholder: '예: 800', section: '신용 정보' },
-        { key: 'overdue', text: '현재 연체 또는 체납이 있으신가요?\n\n⚠️ 연체 시 정책자금 이용이 불가합니다', type: 'choice', options: ['없음', '있음'], section: '신용 정보' }
+        { key: 'overdue', text: '현재 연체 또는 체납이 있으신가요?\n\n⚠️ 연체 시 정책자금 이용이 불가합니다', type: 'choice', options: ['없음', '있음'], section: '신용 정보' },
+        { key: 'recovery_history', text: '개인회생·파산·신용회복 이력이 있으신가요?\n\n💡 과정 이후 6회차 이상 성실납입 중이면\n정책자금 이용이 가능합니다', type: 'choice', options: ['없음', '있음'], section: '신용 정보' }
       ];
 
       return [...base, ...industrySpecific, ...remaining];
@@ -3009,9 +3012,9 @@
       questions = getQuestions('');
       userData = {
         company: '', business_type: '', industry: '', business_career: '',
-        patent_count: 0, has_machine: '', online_sales: '', offline_store: '',
+        employee_count: 0, patent_count: 0, has_machine: '', online_sales: '', offline_store: '',
         kiosk: '', delivery: '', reservation: '', average_sales: 0,
-        sales_growth: '', mortgage_loan: 0, credit_loan: 0, KCB: 0, NICE: 0, overdue: ''
+        sales_growth: '', mortgage_loan: 0, credit_loan: 0, KCB: 0, NICE: 0, overdue: '', recovery_history: ''
       };
 
       document.getElementById('chatMessages').innerHTML = '';
