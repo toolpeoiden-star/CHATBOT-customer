@@ -1,0 +1,3050 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#1e1b4b">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>정책자금 분석 챗봇</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+  
+  <!-- 소스코드 보호 -->
+  <script>
+  (function(){
+    // 우클릭 방지
+    document.addEventListener('contextmenu', function(e) {
+      e.preventDefault();
+      return false;
+    });
+    
+    // 키보드 단축키 방지
+    document.addEventListener('keydown', function(e) {
+      // F12 방지
+      if (e.key === 'F12' || e.keyCode === 123) {
+        e.preventDefault();
+        return false;
+      }
+      // Ctrl+Shift+I (개발자도구)
+      if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.keyCode === 73)) {
+        e.preventDefault();
+        return false;
+      }
+      // Ctrl+Shift+J (콘솔)
+      if (e.ctrlKey && e.shiftKey && (e.key === 'J' || e.key === 'j' || e.keyCode === 74)) {
+        e.preventDefault();
+        return false;
+      }
+      // Ctrl+Shift+C (요소검사)
+      if (e.ctrlKey && e.shiftKey && (e.key === 'C' || e.key === 'c' || e.keyCode === 67)) {
+        e.preventDefault();
+        return false;
+      }
+      // Ctrl+U (소스보기)
+      if (e.ctrlKey && (e.key === 'U' || e.key === 'u' || e.keyCode === 85)) {
+        e.preventDefault();
+        return false;
+      }
+      // Ctrl+S (저장)
+      if (e.ctrlKey && (e.key === 'S' || e.key === 's' || e.keyCode === 83)) {
+        e.preventDefault();
+        return false;
+      }
+    });
+    
+    // 드래그 방지
+    document.addEventListener('dragstart', function(e) {
+      e.preventDefault();
+      return false;
+    });
+    
+    // 선택 방지 (입력 필드 제외)
+    document.addEventListener('selectstart', function(e) {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+        return true;
+      }
+      e.preventDefault();
+      return false;
+    });
+    
+    // 개발자도구 감지 (크기 변화)
+    var devtools = { open: false };
+    var threshold = 160;
+    setInterval(function() {
+      if (window.outerWidth - window.innerWidth > threshold || 
+          window.outerHeight - window.innerHeight > threshold) {
+        if (!devtools.open) {
+          devtools.open = true;
+          document.body.innerHTML = '<div style="display:flex;justify-content:center;align-items:center;height:100vh;font-size:24px;font-family:sans-serif;background:#1e1b4b;color:white;text-align:center;padding:20px;">⚠️ 개발자 도구 사용이 감지되었습니다.<br><br>페이지를 새로고침 해주세요.</div>';
+        }
+      }
+    }, 1000);
+    
+    // 콘솔 로그 숨기기
+    console.log = function(){};
+    console.warn = function(){};
+    console.error = function(){};
+    console.info = function(){};
+    console.debug = function(){};
+  })();
+  </script>
+  
+  <style>
+    /* 모바일 최적화 변수 */
+    :root {
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+    * { 
+      box-sizing: border-box; 
+      margin: 0; 
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    html { height: -webkit-fill-available; }
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
+      min-height: 100vh;
+      min-height: -webkit-fill-available;
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+      touch-action: manipulation;
+      /* 선택 방지 */
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+    /* 입력 필드는 선택 허용 */
+    input, textarea {
+      -webkit-user-select: text;
+      -moz-user-select: text;
+      -ms-user-select: text;
+      user-select: text;
+    }
+    .chatbot-container {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      height: 100dvh;
+      max-width: 100%;
+      margin: 0 auto;
+    }
+
+    /* 헤더 */
+    .chat-header {
+      background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4338ca 100%);
+      padding: 16px 20px;
+      color: white;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+      position: relative;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .chat-header::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -20%;
+      width: 300px;
+      height: 300px;
+      background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+    .header-content {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      position: relative;
+      z-index: 1;
+    }
+    .header-avatar {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+    }
+    .header-info h1 { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
+    .header-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      opacity: 0.85;
+      margin-top: 2px;
+    }
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      background: #4ade80;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.7; transform: scale(0.9); }
+    }
+    .header-progress {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      margin-top: 14px;
+      position: relative;
+      z-index: 1;
+    }
+    .header-progress.active { display: flex; }
+    .progress-bar {
+      flex: 1;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #fbbf24 0%, #f59e0b 100%);
+      border-radius: 10px;
+      transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      width: 0%;
+    }
+    .progress-text { font-size: 12px; font-weight: 600; min-width: 36px; }
+
+    /* 메시지 영역 */
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .chat-messages::-webkit-scrollbar { width: 6px; }
+    .chat-messages::-webkit-scrollbar-track { background: transparent; }
+    .chat-messages::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    .message-wrapper {
+      display: flex;
+      gap: 10px;
+      animation: messageIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .message-wrapper.user { flex-direction: row-reverse; }
+    @keyframes messageIn {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .bot-avatar {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+      box-shadow: 0 2px 8px rgba(99, 102, 241, 0.15);
+    }
+    .message-content {
+      max-width: 85%;
+      display: flex;
+      flex-direction: column;
+    }
+    .message-wrapper.user .message-content { align-items: flex-end; }
+    .section-badge {
+      font-size: 11px;
+      font-weight: 600;
+      color: #6366f1;
+      background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+      padding: 4px 12px;
+      border-radius: 20px;
+      margin-bottom: 8px;
+      display: inline-block;
+    }
+    .message-bubble { padding: 14px 18px; border-radius: 24px; position: relative; }
+    .message-bubble.bot {
+      background: white;
+      border-radius: 24px 24px 24px 6px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    }
+    .message-bubble.user {
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      color: white;
+      border-radius: 24px 24px 6px 24px;
+      box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+    }
+    .message-icon { font-size: 28px; margin-bottom: 8px; }
+    .message-text { font-size: 15px; line-height: 1.6; white-space: pre-line; }
+    .message-bubble.bot .message-text { color: #1e293b; }
+    .message-time { font-size: 11px; color: #94a3b8; margin-top: 6px; }
+
+    /* 타이핑 애니메이션 */
+    .typing-dots { display: flex; gap: 5px; padding: 4px 0; }
+    .typing-dots span {
+      width: 8px;
+      height: 8px;
+      background: #94a3b8;
+      border-radius: 50%;
+      animation: bounce 1.4s infinite ease-in-out both;
+    }
+    .typing-dots span:nth-child(1) { animation-delay: -0.32s; }
+    .typing-dots span:nth-child(2) { animation-delay: -0.16s; }
+    @keyframes bounce {
+      0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+      40% { transform: scale(1.1); opacity: 1; }
+    }
+
+    /* 버튼들 */
+    .start-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      margin-top: 16px;
+      padding: 14px 24px;
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      color: white;
+      border: none;
+      border-radius: 16px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
+      font-family: inherit;
+    }
+    .start-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5); }
+    .start-btn:active { transform: translateY(0); }
+    .choice-buttons { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+    .choice-btn {
+      padding: 10px 18px;
+      background: #f1f5f9;
+      border: 2px solid transparent;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #475569;
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      font-family: inherit;
+    }
+    .choice-btn:hover {
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      color: white;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    }
+    .choice-btn:active { transform: translateY(0); }
+
+    /* 입력 영역 */
+    .chat-input {
+      display: none;
+      background: white;
+      padding: 16px 20px;
+      border-top: 1px solid #e2e8f0;
+      box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.05);
+      flex-shrink: 0;
+    }
+    .chat-input.active { display: block; }
+    .input-wrapper { display: flex; gap: 12px; max-width: 600px; margin: 0 auto; }
+    .input-wrapper input {
+      flex: 1;
+      padding: 14px 20px;
+      border: 2px solid #e2e8f0;
+      border-radius: 24px;
+      font-size: 15px;
+      transition: all 0.25s;
+      background: #f8fafc;
+      font-family: inherit;
+    }
+    .input-wrapper input:focus {
+      outline: none;
+      border-color: #6366f1;
+      background: white;
+      box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+    }
+    .send-btn {
+      min-width: 70px;
+      height: 50px;
+      padding: 0 16px;
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      border: none;
+      border-radius: 25px;
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.25s;
+      box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
+      flex-shrink: 0;
+      font-size: 15px;
+      font-weight: 600;
+      font-family: inherit;
+    }
+    .send-btn .send-text { display: inline; }
+    .send-btn:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; }
+    .send-btn:not(:disabled):hover { transform: scale(1.05); box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5); }
+    .send-btn:not(:disabled):active { transform: scale(0.98); }
+
+    /* 결과 카드 */
+    .result-card {
+      background: white;
+      border-radius: 28px;
+      padding: 28px;
+      margin: 8px 0;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+      animation: resultIn 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    @keyframes resultIn {
+      from { opacity: 0; transform: scale(0.95) translateY(20px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .result-header { text-align: center; margin-bottom: 28px; }
+    .result-badge {
+      display: inline-block;
+      padding: 6px 16px;
+      background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+      color: white;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: 20px;
+      margin-bottom: 14px;
+    }
+    .result-header h2 { font-size: 22px; font-weight: 700; color: #1e293b; margin-bottom: 4px; }
+    .result-header p { font-size: 14px; color: #64748b; }
+
+    .result-unavailable { text-align: center; padding: 40px 20px; }
+    .unavailable-icon { font-size: 56px; margin-bottom: 16px; }
+    .result-unavailable h3 { font-size: 20px; color: #ef4444; margin-bottom: 8px; }
+    .result-unavailable p { color: #64748b; font-size: 14px; }
+
+    .result-gauge { display: flex; flex-direction: column; align-items: center; margin-bottom: 28px; position: relative; }
+    .result-gauge svg { width: 140px; height: 140px; transform: rotate(-90deg); }
+    .gauge-bg { fill: none; stroke: #e2e8f0; stroke-width: 10; }
+    .gauge-fill {
+      fill: none;
+      stroke: url(#gaugeGradient);
+      stroke-width: 10;
+      stroke-linecap: round;
+      transition: stroke-dasharray 1s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .gauge-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -60%);
+      display: flex;
+      align-items: baseline;
+    }
+    .gauge-value { font-size: 42px; font-weight: 800; color: #1e293b; }
+    .gauge-unit { font-size: 20px; font-weight: 600; color: #64748b; margin-left: 2px; }
+    .gauge-label { font-size: 14px; font-weight: 600; color: #6366f1; margin-top: 8px; }
+
+    .result-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 24px; }
+    .stat-card {
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      padding: 20px;
+      border-radius: 20px;
+      text-align: center;
+    }
+    .stat-icon { font-size: 28px; margin-bottom: 8px; }
+    .stat-label { font-size: 12px; color: #64748b; margin-bottom: 4px; }
+    .stat-value { font-size: 20px; font-weight: 700; color: #1e293b; }
+
+    /* 추천 상품 섹션 */
+    .recommend-section {
+      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+      border-radius: 20px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .recommend-section h4 {
+      font-size: 15px;
+      font-weight: 700;
+      color: #92400e;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .recommend-list { display: flex; flex-direction: column; gap: 14px; }
+    .recommend-item {
+      background: white;
+      border-radius: 16px;
+      padding: 0;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      overflow: hidden;
+      border: 1px solid #e2e8f0;
+    }
+    .recommend-item-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .recommend-item-number {
+      width: 28px;
+      height: 28px;
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      color: white;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+    .recommend-item-title-wrap { flex: 1; }
+    .recommend-item-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 2px;
+    }
+    .recommend-item-org {
+      font-size: 11px;
+      padding: 2px 8px;
+      background: #64748b;
+      color: white;
+      border-radius: 4px;
+      font-weight: 600;
+      display: inline-block;
+    }
+    .recommend-item-body { padding: 14px 16px; }
+    .recommend-info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px dashed #e2e8f0;
+    }
+    .recommend-info-row:last-of-type { border-bottom: none; }
+    .recommend-info-label { font-size: 13px; color: #64748b; font-weight: 500; }
+    .recommend-info-value { font-size: 14px; font-weight: 600; color: #1e293b; text-align: right; }
+    .recommend-info-value.highlight { color: #6366f1; font-weight: 700; }
+    .recommend-estimate {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 12px;
+      padding: 12px 14px;
+      background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+      border-radius: 10px;
+      font-size: 13px;
+      color: #4338ca;
+    }
+    .recommend-estimate-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .recommend-estimate strong { font-weight: 700; }
+    
+    /* 기업 분류 배지 */
+    .biz-category-badge {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 20px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+      color: white;
+      flex-wrap: wrap;
+    }
+    .biz-category-icon { font-size: 20px; }
+    .biz-category-text { font-weight: 700; font-size: 16px; }
+    .biz-category-sub { font-size: 12px; opacity: 0.9; }
+
+    /* 인사이트 */
+    .result-insights {
+      background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+      padding: 20px;
+      border-radius: 20px;
+      margin-bottom: 20px;
+    }
+    .result-insights h4 { font-size: 15px; font-weight: 600; color: #4338ca; margin-bottom: 14px; }
+    .insight-list { display: flex; flex-direction: column; gap: 10px; }
+    .insight-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      background: white;
+      border-radius: 12px;
+      font-size: 14px;
+      color: #475569;
+    }
+    .insight-item.positive { background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); color: #047857; }
+    .insight-item.warning { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); color: #92400e; }
+    .insight-icon { font-size: 16px; }
+
+    /* 상환 계산기 */
+    .calculator-section {
+      background: white;
+      border: 2px solid #e2e8f0;
+      border-radius: 20px;
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+    .calculator-header {
+      padding: 16px 20px;
+      background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+      color: white;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 600;
+      font-size: 15px;
+    }
+    .calculator-header:hover { opacity: 0.95; }
+    .calculator-arrow {
+      transition: transform 0.3s;
+      font-size: 12px;
+    }
+    .calculator-arrow.open { transform: rotate(180deg); }
+    .calculator-body {
+      display: none;
+      padding: 20px;
+      animation: slideDown 0.3s ease;
+    }
+    .calculator-body.open { display: block; }
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .calc-row { margin-bottom: 16px; }
+    .calc-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #475569;
+      margin-bottom: 6px;
+      display: block;
+    }
+    .calc-input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      font-size: 14px;
+      font-family: inherit;
+      transition: all 0.2s;
+    }
+    .calc-input:focus {
+      outline: none;
+      border-color: #6366f1;
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+    .calc-select {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      font-size: 14px;
+      font-family: inherit;
+      background: white;
+      cursor: pointer;
+    }
+    .calc-row-inline {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .calc-btn {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.2s;
+      margin-top: 8px;
+    }
+    .calc-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3); }
+    .calc-result {
+      margin-top: 20px;
+      padding: 20px;
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      border-radius: 16px;
+      display: none;
+    }
+    .calc-result.show { display: block; animation: fadeIn 0.3s; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .calc-result-summary {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .calc-summary-item { text-align: center; }
+    .calc-summary-label { font-size: 12px; color: #64748b; margin-bottom: 4px; }
+    .calc-summary-value { font-size: 18px; font-weight: 700; color: #1e293b; }
+    .calc-summary-value.primary { color: #6366f1; }
+    .schedule-table-wrapper {
+      max-height: 300px;
+      overflow-y: auto;
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+    }
+    .schedule-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    .schedule-table th {
+      background: #1e1b4b;
+      color: white;
+      padding: 10px 8px;
+      font-weight: 600;
+      position: sticky;
+      top: 0;
+    }
+    .schedule-table td {
+      padding: 10px 8px;
+      text-align: center;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .schedule-table tr:nth-child(even) { background: #f8fafc; }
+    .schedule-table tr:hover { background: #eef2ff; }
+
+    /* 상세정보 */
+    .result-details { margin-bottom: 16px; }
+    .result-details summary {
+      padding: 14px 18px;
+      background: #f8fafc;
+      border-radius: 14px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #475569;
+      cursor: pointer;
+      list-style: none;
+    }
+    .result-details summary::-webkit-details-marker { display: none; }
+    .details-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      padding: 16px;
+      margin-top: 10px;
+      background: #f8fafc;
+      border-radius: 14px;
+    }
+    .details-grid > div { display: flex; flex-direction: column; gap: 2px; }
+    .details-grid span { font-size: 11px; color: #94a3b8; }
+    .details-grid strong { font-size: 13px; color: #1e293b; }
+
+    .result-notice {
+      font-size: 12px;
+      color: #94a3b8;
+      text-align: center;
+      margin-bottom: 20px;
+      line-height: 1.5;
+      padding: 16px;
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      border-radius: 12px;
+    }
+
+    .restart-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+      color: white;
+      border: none;
+      border-radius: 18px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 4px 16px rgba(30, 27, 75, 0.3);
+      font-family: inherit;
+    }
+    .restart-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(30, 27, 75, 0.4); }
+    .restart-btn:active { transform: translateY(0); }
+
+    /* 통계 배너 */
+    .stats-banner {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 20px;
+      color: white;
+    }
+    .stats-banner-title {
+      font-size: 12px;
+      opacity: 0.7;
+      margin-bottom: 10px;
+    }
+    .stats-banner-items { display: flex; justify-content: space-around; }
+    .stats-banner-item { text-align: center; }
+    .stats-banner-value { font-size: 20px; font-weight: 800; color: #fbbf24; }
+    .stats-banner-label { font-size: 11px; opacity: 0.7; margin-top: 2px; }
+
+    /* 반응형 */
+    /* 모바일 반응형 */
+    @media (max-width: 480px) {
+      .message-wrapper { gap: 8px; }
+      .bot-avatar { width: 32px; height: 32px; font-size: 16px; border-radius: 10px; }
+      .message-content { max-width: 100%; }
+      .message-bubble { padding: 12px 14px; font-size: 15px; border-radius: 18px; }
+      .result-card { padding: 16px 10px; margin: 0; border-radius: 18px; }
+      .gauge-value { font-size: 36px; }
+      .stat-value { font-size: 17px; }
+      .stat-card { padding: 14px 8px; border-radius: 12px; }
+      .chat-header { padding: 12px 10px; }
+      .header-avatar { width: 38px; height: 38px; font-size: 18px; border-radius: 12px; }
+      .header-info h1 { font-size: 15px; }
+      .header-info p { font-size: 11px; }
+      .chat-messages { padding: 8px 6px; gap: 12px; -webkit-overflow-scrolling: touch; }
+      .chat-input { padding: 8px 6px; padding-bottom: calc(8px + var(--safe-bottom)); }
+      .input-wrapper { max-width: 100%; gap: 8px; }
+      .input-wrapper input { font-size: 16px !important; padding: 14px 16px; border-radius: 22px; flex: 1; min-width: 0; }
+      .send-btn { min-width: 64px; height: 48px; padding: 0 14px; font-size: 15px; border-radius: 24px; }
+      .choice-btn { padding: 10px 14px; font-size: 14px; min-height: 44px; border-radius: 16px; }
+      .choice-buttons { gap: 6px; }
+      .start-btn { padding: 14px 18px; font-size: 15px; min-height: 48px; border-radius: 14px; }
+      .section-badge { font-size: 10px; padding: 3px 10px; }
+      .recommend-section { padding: 0; }
+      .recommend-estimate { gap: 6px; padding: 8px; border-radius: 10px; }
+      .recommend-estimate-row { flex-direction: column; gap: 3px; align-items: flex-start; font-size: 11px; }
+      .recommend-item { margin-bottom: 8px; border-radius: 14px; }
+      .recommend-item-header { padding: 10px; }
+      .recommend-item-number { width: 24px; height: 24px; font-size: 12px; }
+      .recommend-item-title { font-size: 14px; }
+      .recommend-item-org { font-size: 10px; }
+      .recommend-item-body { padding: 10px; }
+      .recommend-info-label { font-size: 11px; }
+      .recommend-info-value { font-size: 12px; }
+      .cta-main-btn { font-size: 15px; padding: 14px 12px; min-height: 50px; border-radius: 14px; }
+      .cta-item-btn { padding: 10px 12px; min-height: 42px; font-size: 13px; border-radius: 8px; }
+      .calc-input, .calc-select { font-size: 16px !important; padding: 10px 12px; }
+      .calc-row-inline { grid-template-columns: 1fr; }
+      .biz-category-badge { padding: 8px 12px; font-size: 13px; border-radius: 8px; }
+      .biz-category-sub { font-size: 10px; }
+      .stats-banner { padding: 10px; border-radius: 12px; }
+      .stats-banner-value { font-size: 16px; }
+      .stats-banner-label { font-size: 9px; }
+      .result-stats { gap: 6px; }
+      .result-header { margin-bottom: 20px; }
+      .result-header h2 { font-size: 18px; }
+      .result-badge { font-size: 10px; padding: 5px 12px; }
+      .gauge-label { font-size: 13px; }
+      .insight-list { gap: 4px; }
+      .insight-item { padding: 6px 8px; font-size: 12px; border-radius: 8px; }
+      .insight-icon { font-size: 14px; }
+      .result-details summary { padding: 10px 12px; font-size: 12px; }
+      .details-grid { padding: 10px; font-size: 12px; }
+      .result-notice { font-size: 10px; padding: 10px; }
+      .restart-btn { padding: 14px 20px; font-size: 14px; }
+    }
+    
+    /* 아주 작은 화면 */
+    @media (max-width: 360px) {
+      .chat-messages { padding: 6px 4px; gap: 10px; }
+      .chat-input { padding: 6px 4px; }
+      .message-wrapper { gap: 6px; }
+      .bot-avatar { width: 28px; height: 28px; font-size: 14px; }
+      .message-bubble { padding: 10px 12px; font-size: 14px; }
+      .result-card { padding: 14px 8px; }
+      .gauge-value { font-size: 32px; }
+      .stat-value { font-size: 15px; }
+      .cta-main-btn { font-size: 14px; padding: 12px 10px; }
+      .header-info h1 { font-size: 14px; }
+      .input-wrapper input { padding: 12px 14px; }
+      .send-btn { min-width: 58px; height: 44px; padding: 0 12px; font-size: 14px; }
+    }
+
+    .svg-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
+
+    /* ============ 분석하기 버튼 스타일 ============ */
+    .analysis-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      padding: 18px 20px;
+      margin-top: 16px;
+      background: linear-gradient(135deg, #059669 0%, #10b981 50%, #34d399 100%);
+      color: white;
+      font-size: 16px;
+      font-weight: 700;
+      border: none;
+      border-radius: 16px;
+      cursor: pointer;
+      box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4);
+      transition: all 0.2s ease;
+      position: relative;
+      overflow: hidden;
+      font-family: inherit;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .analysis-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(120deg, transparent, rgba(255,255,255,0.3), transparent);
+      animation: analysis-shine 2s infinite;
+    }
+    @keyframes analysis-shine {
+      0% { left: -100%; }
+      100% { left: 100%; }
+    }
+    .analysis-btn:active {
+      transform: scale(0.98);
+      box-shadow: 0 4px 16px rgba(16, 185, 129, 0.35);
+    }
+    @media (max-width: 480px) {
+      .analysis-btn { font-size: 15px; padding: 16px 16px; }
+    }
+
+    /* ============ CTA 버튼 스타일 ============ */
+    .cta-main-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      padding: 18px 24px;
+      margin: 16px 0;
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
+      color: white;
+      font-size: 18px;
+      font-weight: 700;
+      border: none;
+      border-radius: 16px;
+      cursor: pointer;
+      box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .cta-main-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(120deg, transparent, rgba(255,255,255,0.3), transparent);
+      animation: cta-shine 2s infinite;
+    }
+    @keyframes cta-shine {
+      0% { left: -100%; }
+      100% { left: 100%; }
+    }
+    .cta-main-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 32px rgba(99, 102, 241, 0.5);
+    }
+    .cta-main-btn:active {
+      transform: translateY(0);
+    }
+
+    .cta-item-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 10px 16px;
+      margin-top: 0;
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      color: white;
+      font-size: 14px;
+      font-weight: 600;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      width: 100%;
+      transition: all 0.25s ease;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    }
+    .cta-item-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
+    }
+
+    /* ============ 모달 스타일 ============ */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100vh;
+      height: 100dvh;
+      display: none;
+      justify-content: center;
+      align-items: flex-end;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      z-index: 9999;
+      padding: 0;
+    }
+    .modal-overlay.show {
+      display: flex;
+    }
+    .modal-content {
+      width: 100%;
+      max-width: 500px;
+      background: white;
+      border-radius: 24px 24px 0 0;
+      padding: 28px 24px;
+      padding-bottom: calc(28px + var(--safe-bottom));
+      position: relative;
+      animation: modalSlideUp 0.3s ease;
+      max-height: 90vh;
+      max-height: 90dvh;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .modal-content::before {
+      content: '';
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 40px;
+      height: 4px;
+      background: #d1d5db;
+      border-radius: 2px;
+    }
+    @keyframes modalSlideUp {
+      from { opacity: 0; transform: translateY(100%); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @media (min-width: 600px) {
+      .modal-overlay { align-items: center; padding: 20px; }
+      .modal-content { border-radius: 24px; animation: modalIn 0.3s ease; }
+      .modal-content::before { display: none; }
+      @keyframes modalIn {
+        from { opacity: 0; transform: scale(0.95); }
+        to { opacity: 1; transform: scale(1); }
+      }
+    }
+    .modal-close {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      width: 36px;
+      height: 36px;
+      background: #f1f5f9;
+      border: none;
+      border-radius: 50%;
+      font-size: 22px;
+      color: #64748b;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+    .modal-close:hover {
+      background: #e2e8f0;
+      color: #334155;
+    }
+    .modal-header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .modal-header h3 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #1e1b4b;
+      margin-bottom: 8px;
+    }
+    .modal-header p {
+      font-size: 14px;
+      color: #64748b;
+    }
+    .modal-product-info {
+      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 20px;
+      border: 1px solid #bae6fd;
+    }
+    .modal-product-name {
+      font-size: 16px;
+      font-weight: 700;
+      color: #0369a1;
+      margin-bottom: 4px;
+    }
+    .modal-product-detail {
+      font-size: 13px;
+      color: #0284c7;
+    }
+    .form-group {
+      margin-bottom: 18px;
+    }
+    .form-label {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 8px;
+    }
+    .form-label .required {
+      color: #ef4444;
+      margin-left: 2px;
+    }
+    .form-input {
+      width: 100%;
+      padding: 14px 16px;
+      font-size: 16px;
+      border: 2px solid #e5e7eb;
+      border-radius: 12px;
+      outline: none;
+      transition: all 0.2s;
+    }
+    .form-input:focus {
+      border-color: #6366f1;
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+    .form-input::placeholder {
+      color: #9ca3af;
+    }
+    .phone-input-group {
+      display: flex;
+      gap: 8px;
+    }
+    .phone-input-group select {
+      flex: 0 0 90px;
+      padding: 14px 12px;
+      font-size: 16px;
+      border: 2px solid #e5e7eb;
+      border-radius: 12px;
+      outline: none;
+      background: white;
+      cursor: pointer;
+    }
+    .phone-input-group select:focus {
+      border-color: #6366f1;
+    }
+    .phone-input-group input {
+      flex: 1;
+      text-align: center;
+    }
+    .agreement-box {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 14px;
+      background: #f8fafc;
+      border-radius: 12px;
+      margin-bottom: 20px;
+    }
+    .agreement-box input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      margin-top: 2px;
+      cursor: pointer;
+      accent-color: #6366f1;
+    }
+    .agreement-box label {
+      font-size: 14px;
+      color: #374151;
+      cursor: pointer;
+      line-height: 1.5;
+    }
+    .agreement-box .privacy-link {
+      color: #6366f1;
+      text-decoration: underline;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .submit-btn {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      color: white;
+      font-size: 17px;
+      font-weight: 700;
+      border: none;
+      border-radius: 14px;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 6px 20px rgba(99, 102, 241, 0.35);
+    }
+    .submit-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(99, 102, 241, 0.45);
+    }
+    .submit-btn:disabled {
+      background: #cbd5e1;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+    .analysis-submit-btn {
+      background: linear-gradient(135deg, #059669 0%, #10b981 50%, #34d399 100%);
+      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35);
+    }
+    .analysis-submit-btn:active {
+      transform: scale(0.98);
+    }
+
+    /* 개인정보취급방침 모달 */
+    .privacy-modal-content {
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+    .privacy-modal-content h4 {
+      font-size: 18px;
+      color: #1e1b4b;
+      margin: 20px 0 12px 0;
+    }
+    .privacy-modal-content h4:first-child {
+      margin-top: 0;
+    }
+    .privacy-modal-content p {
+      font-size: 14px;
+      color: #4b5563;
+      line-height: 1.7;
+      margin-bottom: 12px;
+    }
+    .privacy-modal-content ul {
+      margin: 8px 0 16px 20px;
+      font-size: 14px;
+      color: #4b5563;
+      line-height: 1.7;
+    }
+
+    /* 성공 모달 */
+    .success-icon {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+      font-size: 40px;
+      box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3);
+    }
+    .success-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: #1e1b4b;
+      text-align: center;
+      margin-bottom: 12px;
+    }
+    .success-message {
+      font-size: 15px;
+      color: #64748b;
+      text-align: center;
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+    .success-btn {
+      width: 100%;
+      padding: 16px;
+      background: #10b981;
+      color: white;
+      font-size: 16px;
+      font-weight: 600;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <svg class="svg-defs">
+    <defs>
+      <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#6366f1" />
+        <stop offset="100%" stop-color="#8b5cf6" />
+      </linearGradient>
+    </defs>
+  </svg>
+
+  <div class="chatbot-container">
+    <header class="chat-header">
+      <div class="header-content">
+        <div class="header-avatar">💼</div>
+        <div class="header-info">
+          <h1>정책자금 분석</h1>
+          <span class="header-status">
+            <span class="status-dot"></span>
+            응답 가능
+          </span>
+        </div>
+      </div>
+      <div class="header-progress" id="headerProgress">
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <span class="progress-text" id="progressText">0%</span>
+      </div>
+    </header>
+
+    <main class="chat-messages" id="chatMessages"></main>
+
+    <footer class="chat-input" id="chatInput">
+      <div class="input-wrapper">
+        <input type="text" id="userInput" placeholder="여기에 입력하세요" autocomplete="off">
+        <button class="send-btn" id="sendBtn" disabled>
+          <span class="send-text">전송</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" />
+          </svg>
+        </button>
+      </div>
+    </footer>
+  </div>
+
+  <!-- 분석/조회 신청 모달 -->
+  <div id="analysisModal" class="modal-overlay">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal('analysisModal')">&times;</button>
+      <div class="modal-header">
+        <h3>📊 정책자금 분석/조회 서비스</h3>
+        <p>맞춤 분석 결과를 상담사가 직접 안내해드립니다</p>
+      </div>
+      <form id="analysisForm" onsubmit="submitAnalysisForm(event)">
+        <div class="form-group">
+          <label class="form-label">성함(이름)<span class="required">*</span></label>
+          <input type="text" id="analysisName" class="form-input" placeholder="대표자 성함" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">연락처<span class="required">*</span></label>
+          <div class="phone-input-group">
+            <select id="analysisPhone1">
+              <option value="010">010</option>
+              <option value="011">011</option>
+            </select>
+            <input type="text" id="analysisPhone2" class="form-input" maxlength="4" inputmode="numeric" placeholder="0000" required>
+            <input type="text" id="analysisPhone3" class="form-input" maxlength="4" inputmode="numeric" placeholder="0000" required>
+          </div>
+        </div>
+        <div class="agreement-box">
+          <input type="checkbox" id="analysisAgreePrivacy" required>
+          <label for="analysisAgreePrivacy">
+            <span class="privacy-link" onclick="openModal('privacyModal'); event.stopPropagation();">개인정보 수집·이용 동의 [보기]</span> <span style="color:#ef4444;">*</span>
+          </label>
+        </div>
+        <button type="submit" class="submit-btn analysis-submit-btn" id="analysisSubmitBtn">
+          ✅ 자금분석결과 · 무료자문상담 받기
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 상담 신청 모달 -->
+  <div id="consultModal" class="modal-overlay">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal('consultModal')">&times;</button>
+      <div class="modal-header">
+        <h3>📞 무료자문상담 신청</h3>
+        <p>전문 상담사가 빠르게 연락드립니다</p>
+      </div>
+      <div id="modalProductInfo" class="modal-product-info" style="display:none;">
+        <div class="modal-product-name" id="modalProductName"></div>
+        <div class="modal-product-detail" id="modalProductDetail"></div>
+      </div>
+      <form id="consultForm" onsubmit="submitConsultForm(event)">
+        <div class="form-group">
+          <label class="form-label">성함(이름)<span class="required">*</span></label>
+          <input type="text" id="clientName" class="form-input" placeholder="대표자 성함" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">연락처<span class="required">*</span></label>
+          <div class="phone-input-group">
+            <select id="phone1">
+              <option value="010">010</option>
+              <option value="011">011</option>
+            </select>
+            <input type="text" id="phone2" class="form-input" maxlength="4" inputmode="numeric" placeholder="0000" required>
+            <input type="text" id="phone3" class="form-input" maxlength="4" inputmode="numeric" placeholder="0000" required>
+          </div>
+        </div>
+        <div class="agreement-box">
+          <input type="checkbox" id="agreePrivacy" required>
+          <label for="agreePrivacy">
+            <span class="privacy-link" onclick="openModal('privacyModal'); event.stopPropagation();">[개인정보취급방침]</span>에 동의합니다 <span style="color:#ef4444;">*</span>
+          </label>
+        </div>
+        <button type="submit" class="submit-btn" id="submitBtn">정책자금 상담 신청하기</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 개인정보취급방침 모달 -->
+  <div id="privacyModal" class="modal-overlay">
+    <div class="modal-content privacy-modal-content">
+      <button class="modal-close" onclick="closeModal('privacyModal')">&times;</button>
+      <h3 style="font-size:20px;font-weight:700;margin-bottom:20px;color:#1e1b4b;">개인정보취급방침</h3>
+      <h4>가. 수집하는 개인정보 항목 및 수집방법</h4>
+      <p>– 성명, 연락처(휴대전화 번호), 사업자명, 업종, 연매출액 규모</p>
+      
+      <h4>나. 개인정보의 수집 및 이용목적</h4>
+      <ul>
+        <li>담당자들의 전화 및 문자 상담·안내</li>
+        <li>추후 문자(SMS)를 통한 정책자금 정보 수신</li>
+        <li>정책자금연구소 바름 홍보/광고내용 수신</li>
+      </ul>
+      
+      <h4>다. 보유 및 이용기간</h4>
+      <p>상담 완료 후 관계 법령이 정한 기간 또는 본인 요청 시까지 보유·이용</p>
+      <ul>
+        <li>전자상거래법: 계약·결제·분쟁 기록 5년</li>
+        <li>세법: 장부 및 증빙 5년</li>
+        <li>통신비밀보호법: 접속 로그 3개월</li>
+      </ul>
+      
+      <h4>라. 동의 거부 시 안내</h4>
+      <p>필수 정보 동의 거부 시 상담 및 정보 제공이 제한될 수 있습니다.</p>
+      
+      <h4>문의</h4>
+      <p>
+        정책자금연구소 바름 / 대표: 김수용<br>
+        서울특별시 강남구 봉은사로30길 68 6층 35호<br>
+        1533-9784 · <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="f09c9192de92918295859db0979d91999cde939f9d">[email&#160;protected]</a><br>
+        사업자등록번호 340-49-00912
+      </p>
+      
+      <button class="submit-btn" style="margin-top:20px;" onclick="closeModal('privacyModal')">확인</button>
+    </div>
+  </div>
+
+  <!-- 성공 모달 -->
+  <div id="successModal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="success-icon">✓</div>
+      <div class="success-title">신청이 완료되었습니다!</div>
+      <div class="success-message">
+        전문 상담사가 빠른 시간 내에<br>연락드리겠습니다.<br><br>
+        <strong>상담 가능 시간:</strong> 평일 09:00 ~ 18:00
+      </div>
+      <button class="success-btn" onclick="closeModal('successModal')">확인</button>
+    </div>
+  </div>
+
+  <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+    // ============ 유입경로 추적 ============
+    (function() {
+      const KEY = 'first_referrer';
+      if (!sessionStorage.getItem(KEY)) {
+        const url = new URL(location.href);
+        const fromParam = url.searchParams.get('from') || url.searchParams.get('utm_source') || 
+                          url.searchParams.get('utm_medium') || url.searchParams.get('utm_campaign');
+        const fullReferrer = document.referrer;
+        let refValue = "직접 방문";
+
+        if (fromParam) {
+          refValue = `from/utm: ${fromParam}`;
+        } else if (fullReferrer) {
+          refValue = fullReferrer;
+          if (fullReferrer.includes("blog.naver")) refValue = `네이버 블로그: ${fullReferrer}`;
+          if (fullReferrer.includes("cafe.naver")) refValue = `네이버 카페: ${fullReferrer}`;
+          if (fullReferrer.includes("instagram")) refValue = `인스타그램: ${fullReferrer}`;
+          if (fullReferrer.includes("youtube")) refValue = `유튜브: ${fullReferrer}`;
+          if (fullReferrer.includes("facebook")) refValue = `페이스북: ${fullReferrer}`;
+          if (fullReferrer.includes("kakao")) refValue = `카카오톡: ${fullReferrer}`;
+        } else {
+          refValue = `랜딩: ${location.href}`;
+        }
+        sessionStorage.setItem(KEY, refValue);
+      }
+    })();
+
+    // ============ 분석 결과 저장 변수 ============
+    let analysisResult = {
+      limit: 0,
+      rate: 0,
+      probability: 0,
+      products: [],
+      bizCategory: ''
+    };
+    let selectedProduct = null;
+    let isSubmitting = false;
+
+    // ============ 분석 모달 함수 ============
+    function openAnalysisModal() {
+      const modal = document.getElementById('analysisModal');
+      if (modal) {
+        modal.classList.add('show');
+        document.body.style.overflow = 'hidden';
+      }
+    }
+
+    // ============ 모달 함수 ============
+    function openModal(modalId, productInfo = null) {
+      const modal = document.getElementById(modalId);
+      if (modal) {
+        modal.classList.add('show');
+        document.body.style.overflow = 'hidden';
+        
+        // 상품 정보가 있으면 표시
+        if (productInfo && modalId === 'consultModal') {
+          selectedProduct = productInfo;
+          const productInfoDiv = document.getElementById('modalProductInfo');
+          const productNameEl = document.getElementById('modalProductName');
+          const productDetailEl = document.getElementById('modalProductDetail');
+          
+          productInfoDiv.style.display = 'block';
+          productNameEl.textContent = `📌 ${productInfo.name} (${productInfo.org})`;
+          productDetailEl.textContent = `최대 ${formatLimit(productInfo.maxLimit)} | 금리 ${productInfo.minRate}%~`;
+        } else if (modalId === 'consultModal') {
+          selectedProduct = null;
+          document.getElementById('modalProductInfo').style.display = 'none';
+        }
+      }
+    }
+
+    function closeModal(modalId) {
+      const modal = document.getElementById(modalId);
+      if (modal) {
+        modal.classList.remove('show');
+        document.body.style.overflow = '';
+      }
+    }
+
+    // 모달 외부 클릭 시 닫기
+    document.addEventListener('click', function(e) {
+      if (e.target.classList.contains('modal-overlay')) {
+        e.target.classList.remove('show');
+        document.body.style.overflow = '';
+      }
+    });
+
+    // ============ Google Sheets 전송 함수 ============
+    const SHEET_URL = 'https://script.google.com/macros/s/AKfycbzEWx8mkK4IJdDQHnbFaJPzxT8EzW9dcCLnsQRGWf0swJhb0IipF0FKzxPw8ejUM_uj/exec';
+
+    function submitConsultForm(e) {
+      e.preventDefault();
+      
+      if (isSubmitting) return;
+      
+      const name = document.getElementById('clientName').value.trim();
+      const phone1 = document.getElementById('phone1').value;
+      const phone2 = document.getElementById('phone2').value.trim();
+      const phone3 = document.getElementById('phone3').value.trim();
+      const agreePrivacy = document.getElementById('agreePrivacy').checked;
+      
+      // 유효성 검사
+      if (!name) { alert('성함을 입력해주세요.'); return; }
+      if (!phone2 || !phone3 || phone2.length < 3 || phone3.length < 4) {
+        alert('연락처를 정확히 입력해주세요.'); return;
+      }
+      if (!agreePrivacy) { alert('개인정보취급방침에 동의해주세요.'); return; }
+      
+      // 중복 제출 체크
+      const userKey = `submitted_${name}_${phone1}-${phone2}-${phone3}`;
+      if (localStorage.getItem(userKey)) {
+        alert('이미 해당 정보로 접수된 기록이 있습니다.');
+        return;
+      }
+      
+      isSubmitting = true;
+      const submitBtn = document.getElementById('submitBtn');
+      submitBtn.disabled = true;
+      submitBtn.textContent = '전송 중...';
+      
+      const now = new Date();
+      const phoneNumber = `${phone1}-${phone2}-${phone3}`;
+      
+      // FormData 생성
+      const fd = new FormData();
+      fd.append('작업 날짜', now.toLocaleDateString('ko-KR'));
+      fd.append('작업 시간', now.toLocaleTimeString('ko-KR'));
+      fd.append('사업장명(상호)', userData.company || '');
+      fd.append('사업자 형태', userData.business_type || '');
+      fd.append('업종', userData.industry || '');
+      fd.append('사업자 업력', userData.business_career || '');
+      fd.append('상시 근로자 수', userData.employee_count || 0);
+      fd.append('기업 분류 (자동 판단)', analysisResult.bizCategory || '');
+      fd.append('특허 보유 수', userData.patent_count || 0);
+      fd.append('기계/설비 보유', userData.has_machine || '');
+      fd.append('온라인 판매 여부', userData.online_sales || '');
+      fd.append('오프라인 매장', userData.offline_store || '');
+      fd.append('키오스크 사용', userData.kiosk || '');
+      fd.append('배달앱 사용', userData.delivery || '');
+      fd.append('숙박앱 사용', userData.reservation || '');
+      fd.append('연평균 매출액', userData.average_sales ? `${userData.average_sales}만원` : '');
+      fd.append('2년간 10%이상 성장', userData.sales_growth || '');
+      fd.append('담보대출 잔액', userData.mortgage_loan ? `${userData.mortgage_loan}만원` : '0');
+      fd.append('신용대출 잔액', userData.credit_loan ? `${userData.credit_loan}만원` : '0');
+      fd.append('KCB 신용점수', userData.KCB || '');
+      fd.append('NICE 신용점수', userData.NICE || '');
+      fd.append('연체/체납 여부', userData.overdue || '');
+      fd.append('예상 대출 한도', analysisResult.limit ? formatLimit(analysisResult.limit) : '');
+      fd.append('예상 금리', analysisResult.rate ? `${analysisResult.rate}%` : '');
+      
+      // 추천 상품 목록 (선택한 상품이 있으면 맨 앞에 표시)
+      let productNames = analysisResult.products.map(p => p.name);
+      if (selectedProduct) {
+        productNames = [selectedProduct.name + ' (선택)', ...productNames.filter(n => n !== selectedProduct.name)];
+      }
+      fd.append('추천 상품 목록', productNames.join(', '));
+      
+      fd.append('분석 일시', now.toLocaleString('ko-KR'));
+      fd.append('유입경로', sessionStorage.getItem('first_referrer') || 'UNKNOWN');
+      fd.append('개인정보수집동의', '동의');
+      fd.append('성함(이름)', name);
+      fd.append('연락처', phoneNumber);
+      
+      fetch(SHEET_URL, {
+        method: 'POST',
+        body: fd
+      })
+      .then(() => {
+        localStorage.setItem(userKey, 'submitted');
+        closeModal('consultModal');
+        openModal('successModal');
+        // 폼 리셋
+        document.getElementById('consultForm').reset();
+      })
+      .catch(err => {
+        console.error('전송 오류:', err);
+        alert('오류가 발생했습니다. 다시 시도해주세요.');
+      })
+      .finally(() => {
+        isSubmitting = false;
+        submitBtn.disabled = false;
+        submitBtn.textContent = '정책자금 상담 신청하기';
+      });
+    }
+
+    // ============ 분석 신청 폼 제출 ============
+    function submitAnalysisForm(e) {
+      e.preventDefault();
+      
+      if (isSubmitting) return;
+      
+      const name = document.getElementById('analysisName').value.trim();
+      const phone1 = document.getElementById('analysisPhone1').value;
+      const phone2 = document.getElementById('analysisPhone2').value.trim();
+      const phone3 = document.getElementById('analysisPhone3').value.trim();
+      const agreePrivacy = document.getElementById('analysisAgreePrivacy').checked;
+      
+      if (!name || !phone2 || !phone3) {
+        alert('모든 필수 항목을 입력해주세요.');
+        return;
+      }
+      
+      if (!agreePrivacy) {
+        alert('개인정보 수집·이용에 동의해주세요.');
+        return;
+      }
+      
+      if (phone2.length < 3 || phone3.length < 4) {
+        alert('연락처를 정확히 입력해주세요.');
+        return;
+      }
+      
+      // 중복 체크
+      const phoneNumber = `${phone1}-${phone2}-${phone3}`;
+      const userKey = `analysis_${phoneNumber}`;
+      if (localStorage.getItem(userKey)) {
+        alert('이미 분석 신청이 완료되었습니다.\n상담사가 곧 연락드릴 예정입니다.');
+        return;
+      }
+      
+      isSubmitting = true;
+      const submitBtn = document.getElementById('analysisSubmitBtn');
+      submitBtn.disabled = true;
+      submitBtn.textContent = '신청 중...';
+      
+      const fd = new FormData();
+      const now = new Date();
+      fd.append('작업날짜', now.toLocaleDateString('ko-KR'));
+      fd.append('작업시간', now.toLocaleTimeString('ko-KR'));
+      
+      // 사업자 정보
+      fd.append('사업자분류', userData.company || '');
+      fd.append('사업자종류', userData.business_type || '');
+      fd.append('업종', userData.industry || '');
+      fd.append('업력', userData.business_career || '');
+      fd.append('특허여부', userData.patent_count > 0 ? '있음' : '없음');
+      fd.append('기계설비여부', userData.has_machine || '');
+      fd.append('연간매출액', userData.average_sales ? `${userData.average_sales}만원` : '');
+      fd.append('매출성장률', userData.sales_growth || '');
+      fd.append('담보대출잔액', userData.mortgage_loan ? `${userData.mortgage_loan}만원` : '0');
+      fd.append('신용대출잔액', userData.credit_loan ? `${userData.credit_loan}만원` : '0');
+      fd.append('KCB 신용점수', userData.KCB || '');
+      fd.append('NICE 신용점수', userData.NICE || '');
+      fd.append('연체/체납 여부', userData.overdue || '');
+      fd.append('신청유형', '분석 전 신청');
+      fd.append('UTM source', sessionStorage.getItem('utm_source') || '');
+      fd.append('UTM medium', sessionStorage.getItem('utm_medium') || '');
+      fd.append('UTM campaign', sessionStorage.getItem('utm_campaign') || '');
+      fd.append('유입경로', sessionStorage.getItem('first_referrer') || 'UNKNOWN');
+      fd.append('개인정보수집동의', '동의');
+      fd.append('성함(이름)', name);
+      fd.append('연락처', phoneNumber);
+      
+      fetch(SHEET_URL, {
+        method: 'POST',
+        body: fd
+      })
+      .then(() => {
+        localStorage.setItem(userKey, 'submitted');
+        closeModal('analysisModal');
+        
+        // 완료 메시지 표시
+        const chatMessages = document.getElementById('chatMessages');
+        const wrapper = document.createElement('div');
+        wrapper.className = 'message-wrapper bot';
+        wrapper.innerHTML = `
+          <div class="bot-avatar">🤖</div>
+          <div class="message-content">
+            <div class="section-badge">신청 완료</div>
+            <div class="message-bubble bot">
+              <div class="message-text">
+                <strong>✅ 분석 신청이 완료되었습니다!</strong><br><br>
+                ${name}님, 감사합니다.<br><br>
+                전문 상담사가 <strong>빠른 시간 내에</strong><br>
+                <strong>${phoneNumber}</strong>로 연락드릴 예정입니다.<br><br>
+                📞 맞춤 정책자금 분석 결과와<br>
+                무료 자문 상담을 받아보세요!
+              </div>
+              <button class="restart-btn" onclick="resetChat()" style="margin-top:16px;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15" />
+                </svg>
+                <span>처음부터 다시하기</span>
+              </button>
+            </div>
+            <span class="message-time">${getTime()}</span>
+          </div>
+        `;
+        chatMessages.appendChild(wrapper);
+        scrollToBottom();
+        
+        // 폼 리셋
+        document.getElementById('analysisForm').reset();
+      })
+      .catch(err => {
+        alert('오류가 발생했습니다. 다시 시도해주세요.');
+      })
+      .finally(() => {
+        isSubmitting = false;
+        submitBtn.disabled = false;
+        submitBtn.textContent = '✅ 자금분석결과 · 무료자문상담 받기';
+      });
+    }
+
+    // 전화번호 입력 시 숫자만 허용
+    document.addEventListener('DOMContentLoaded', function() {
+      ['phone2', 'phone3', 'analysisPhone2', 'analysisPhone3'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.addEventListener('input', function() {
+            this.value = this.value.replace(/[^0-9]/g, '');
+          });
+        }
+      });
+    });
+
+    // ============ 데이터 정의 ============
+    const industryQuestions = {
+      '제조업': ['patent', 'machine'],
+      '건설업': ['patent', 'machine'],
+      '도소매업': ['online', 'offline', 'kiosk'],
+      '요식업': ['delivery', 'kiosk'],
+      '숙박업': ['reservation', 'kiosk'],
+      'SW/IT업': ['patent'],
+      '서비스업': ['patent'],
+      '운송업': [],
+      '기타': []
+    };
+
+    // 정책자금 상품 데이터베이스
+    // ============ 소상공인 정책자금 (소진공, 지역신보, 서민금융진흥원) ============
+    const smallBizFunds = {
+      general_stable: {
+        name: '일반경영안정자금',
+        org: '소진공',
+        target: '소상공인 (업력 무관)',
+        maxLimit: 7000,
+        minRate: 3.58,
+        period: '5년(2년 거치)',
+        method: '대리대출',
+        desc: '소상공인 경영안정 운전자금'
+      },
+      emergency_disaster: {
+        name: '긴급경영안정자금(재해)',
+        org: '소진공',
+        target: '재해피해 소상공인',
+        maxLimit: 10000,
+        minRate: 2.0,
+        period: '5년(2년 거치)',
+        method: '직접/대리대출',
+        desc: '자연재해·사회재난 피해 소상공인 긴급지원'
+      },
+      emergency_crisis: {
+        name: '긴급경영안정자금(경영애로)',
+        org: '소진공',
+        target: '일시적 경영애로 소상공인',
+        maxLimit: 7000,
+        minRate: 2.98,
+        period: '5년(2년 거치)',
+        method: '직접/대리대출',
+        desc: '매출 10% 이상 감소 소상공인 지원'
+      },
+      disabled: {
+        name: '장애인기업지원자금',
+        org: '소진공',
+        target: '장애인 소상공인',
+        maxLimit: 10000,
+        minRate: 2.0,
+        period: '7년(2년 거치)',
+        method: '대리대출',
+        desc: '장애인복지카드 소지 소상공인 우대'
+      },
+      low_credit: {
+        name: '신용취약소상공인자금',
+        org: '소진공',
+        target: 'NCB 839점 이하 소상공인',
+        maxLimit: 3000,
+        minRate: 4.58,
+        period: '5년(2년 거치)',
+        method: '직접대출',
+        desc: '중·저신용 소상공인 자금지원'
+      },
+      restart_hope: {
+        name: '재도전특별자금(희망형)',
+        org: '소진공',
+        target: '희망리턴패키지 수혜 소상공인',
+        maxLimit: 10000,
+        minRate: 3.58,
+        period: '5년(2년 거치)',
+        method: '직접대출',
+        desc: '재창업 준비 소상공인 지원'
+      },
+      restart_general: {
+        name: '재도전특별자금(일반형)',
+        org: '소진공',
+        target: '재창업/채무조정 소상공인',
+        maxLimit: 7000,
+        minRate: 4.58,
+        period: '5년(2년 거치)',
+        method: '직접대출',
+        desc: '재창업 초기단계 소상공인 지원'
+      },
+      youth_employ: {
+        name: '청년고용연계자금',
+        org: '소진공',
+        target: '청년대표 또는 청년고용 소상공인',
+        maxLimit: 7000,
+        minRate: 2.98,
+        period: '5년(2년 거치)',
+        method: '대리대출',
+        desc: '만39세 이하 청년 소상공인 지원'
+      },
+      small_manufacturer: {
+        name: '소공인특화자금',
+        org: '소진공',
+        target: '제조업 소공인 (10인 미만)',
+        maxLimit: 50000,
+        minRate: 3.58,
+        period: '운전5년/시설8년',
+        method: '대리대출',
+        desc: '숙련기술 기반 제조업 소공인 지원'
+      },
+      innovation_growth: {
+        name: '혁신성장촉진자금',
+        org: '소진공',
+        target: '수출/매출성장/스마트 소상공인',
+        maxLimit: 100000,
+        minRate: 3.38,
+        period: '운전5년/시설8년',
+        method: '직접대출',
+        desc: '혁신형 소상공인 성장기반 지원'
+      },
+      matching_invest: {
+        name: '민간투자연계형 매칭융자',
+        org: '소진공',
+        target: '민간투자 유치 소상공인',
+        maxLimit: 50000,
+        minRate: 3.38,
+        period: '8년(3년 거치)',
+        method: '직접대출',
+        desc: '민간투자금 최대 5배 매칭'
+      },
+      refinance: {
+        name: '대환대출',
+        org: '소진공',
+        target: '고금리 대출 보유 소상공인',
+        maxLimit: 5000,
+        minRate: 4.5,
+        period: '10년(2년 거치)',
+        method: '직접대출',
+        desc: '고금리 대출 저금리 전환'
+      },
+      local_guarantee: {
+        name: '지역신용보증재단 보증',
+        org: '지역신보',
+        target: '소기업·소상공인',
+        maxLimit: 80000,
+        minRate: 3.0,
+        period: '보증기간 1년~5년',
+        method: '보증서부 대출',
+        desc: '신용보증서 발급으로 대출 지원'
+      },
+      miso_finance: {
+        name: '미소금융',
+        org: '서민금융진흥원',
+        target: 'NCB 749점 이하 소상공인',
+        maxLimit: 7000,
+        minRate: 4.5,
+        period: '5년(1년 거치)',
+        method: '직접대출',
+        desc: '저신용·저소득 소상공인 지원'
+      }
+    };
+
+    // ============ 중소기업 정책자금 (중진공, 신용보증기금, 기술보증기금) ============
+    const smeFunds = {
+      startup_base: {
+        name: '창업기반지원자금',
+        org: '중진공',
+        target: '업력 7년 미만 창업기업',
+        maxLimit: 600000,
+        minRate: 2.68,
+        period: '시설10년/운전5년',
+        method: '직접/대리대출',
+        desc: '창업초기 기업 종합 자금지원'
+      },
+      youth_startup: {
+        name: '청년전용창업자금',
+        org: '중진공',
+        target: '만39세 이하, 업력 3년 미만',
+        maxLimit: 20000,
+        minRate: 2.5,
+        period: '시설10년/운전6년',
+        method: '직접대출',
+        desc: '청년 창업자 고정금리 우대'
+      },
+      tech_commercialize: {
+        name: '개발기술사업화자금',
+        org: '중진공',
+        target: '특허/R&D 보유 기술기업',
+        maxLimit: 600000,
+        minRate: 2.98,
+        period: '시설10년/운전5년',
+        method: '직접대출',
+        desc: '기술사업화 추진기업 지원'
+      },
+      export_domestic: {
+        name: '내수기업수출기업화',
+        org: '중진공',
+        target: '수출 10만불 미만 기업',
+        maxLimit: 50000,
+        minRate: 2.98,
+        period: '운전5년(2년 거치)',
+        method: '직접대출',
+        desc: '수출 초보기업 육성 지원'
+      },
+      export_global: {
+        name: '수출기업글로벌화',
+        org: '중진공',
+        target: '수출 10만불 이상 기업',
+        maxLimit: 600000,
+        minRate: 3.18,
+        period: '시설10년/운전5년',
+        method: '직접/이차보전',
+        desc: '수출 중소기업 글로벌화 지원'
+      },
+      innovation_growth_sme: {
+        name: '혁신성장지원자금',
+        org: '중진공',
+        target: '업력 7년 이상 성장기업',
+        maxLimit: 1000000,
+        minRate: 3.48,
+        period: '시설10년/운전5년',
+        method: '직접/대리/이차보전',
+        desc: '성장유망 중소기업 시설투자 지원'
+      },
+      net_zero: {
+        name: 'Net-Zero 유망기업지원',
+        org: '중진공',
+        target: '탄소중립·그린 기술기업',
+        maxLimit: 600000,
+        minRate: 2.98,
+        period: '시설10년/운전5년',
+        method: '직접/대리/이차보전',
+        desc: '그린분야 기술사업화 지원'
+      },
+      smart_factory: {
+        name: '제조현장스마트화',
+        org: '중진공',
+        target: '스마트공장 도입 기업',
+        maxLimit: 1000000,
+        minRate: 2.98,
+        period: '시설10년/운전5년',
+        method: '직접/대리/이차보전',
+        desc: '스마트공장·자동화 시설 지원'
+      },
+      business_change: {
+        name: '사업전환자금',
+        org: '중진공',
+        target: '사업전환계획 승인기업',
+        maxLimit: 1000000,
+        minRate: 3.18,
+        period: '시설10년/운전6년',
+        method: '직접/대리대출',
+        desc: '업종전환·신사업 추진기업 지원'
+      },
+      emergency_sme: {
+        name: '긴급경영안정자금',
+        org: '중진공',
+        target: '재해·경영위기 중소기업',
+        maxLimit: 100000,
+        minRate: 1.9,
+        period: '운전5년(2년 거치)',
+        method: '직접대출',
+        desc: '자연재해·사회재난 피해기업 긴급지원'
+      },
+      kodit_general: {
+        name: '신용보증기금 보증',
+        org: '신용보증기금',
+        target: '중소기업 전반',
+        maxLimit: 300000,
+        minRate: 3.0,
+        period: '보증기간 1년~3년',
+        method: '보증서부 대출',
+        desc: '신용보증서 발급으로 담보 대체'
+      },
+      kibo_tech: {
+        name: '기술보증기금 보증',
+        org: '기술보증기금',
+        target: '기술력 보유 중소기업',
+        maxLimit: 300000,
+        minRate: 2.8,
+        period: '보증기간 1년~3년',
+        method: '보증서부 대출',
+        desc: '기술평가 기반 보증서 발급'
+      },
+      startup_nest: {
+        name: '창업기업육성(Start-up NEST)',
+        org: '신용보증기금',
+        target: '업력 7년 미만 창업기업',
+        maxLimit: 100000,
+        minRate: 2.5,
+        period: '보증기간 최대 3년',
+        method: '보증서부 대출',
+        desc: '창업기업 전용 보증 프로그램'
+      },
+      restart_sme: {
+        name: '재도전재기지원보증',
+        org: '기술보증기금',
+        target: '성실실패 재창업 기업',
+        maxLimit: 80000,
+        minRate: 2.5,
+        period: '보증기간 최대 5년',
+        method: '보증서부 대출',
+        desc: '재창업 기업 특례보증'
+      }
+    };
+
+    let currentStep = 0;
+    let questions = [];
+    let userData = {
+      company: '', business_type: '', industry: '', business_career: '',
+      employee_count: 0, patent_count: 0, has_machine: '', online_sales: '', offline_store: '',
+      kiosk: '', delivery: '', reservation: '', average_sales: 0,
+      sales_growth: '', mortgage_loan: 0, credit_loan: 0, KCB: 0, NICE: 0, overdue: ''
+    };
+
+    // 소상공인/중소기업 판단 함수
+    function isSmallBusiness(data) {
+      const manufacturingIndustries = ['제조업', '건설업', '운송업'];
+      const employeeLimit = manufacturingIndustries.includes(data.industry) ? 10 : 5;
+      
+      // 상시근로자 수 기준
+      if (data.employee_count >= employeeLimit) return false;
+      
+      // 매출액 기준 (업종별 소기업 기준의 30% 미만이면 소상공인으로 가정)
+      // 간이과세자는 무조건 소상공인
+      if (data.average_sales < 10000) return true; // 1억 미만은 소상공인
+      if (data.average_sales >= 100000) return false; // 10억 이상은 중소기업급
+      
+      return true; // 기본적으로 소상공인으로 분류
+    }
+
+    // ============ 질문 생성 ============
+    function getQuestions(industry) {
+      const base = [
+        { key: 'start', text: '안녕하세요! 👋\n\n정책자금 한도·금리·상품 추천 서비스입니다.\n\n2025년 정부 정책금융 지원 규모 26.5조 원!\n최적의 정책자금을 찾아드릴게요.', type: 'button', options: ['분석 시작하기'], section: 'intro' },
+        { key: 'company', text: '사업장명(상호)을 입력해주세요.', type: 'text', placeholder: '예: 바름연구소', section: '사업자 정보' },
+        { key: 'business_type', text: '사업자 형태를 선택해주세요.', type: 'choice', options: ['개인사업자', '법인사업자'], section: '사업자 정보' },
+        { key: 'industry', text: '업종을 선택해주세요.', type: 'choice', options: ['제조업', '도소매업', '건설업', '요식업', '숙박업', '운송업', 'SW/IT업', '서비스업', '기타'], section: '사업자 정보' },
+        { key: 'business_career', text: '사업자 업력을 선택해주세요.', type: 'choice', options: ['1년 미만', '3년 미만', '5년 미만', '7년 미만', '7년 이상'], section: '사업자 정보' },
+        { key: 'employee_count', text: '상시 근로자 수를 입력해주세요.\n(대표자 제외, 일용직 제외)\n\n💡 5인 미만: 소상공인 / 5인 이상: 중소기업', type: 'number', placeholder: '예: 3', section: '사업자 정보' }
+      ];
+
+      const industrySpecific = [];
+      const fields = industryQuestions[industry] || [];
+      
+      if (fields.includes('patent')) industrySpecific.push({ key: 'patent_count', text: '보유 중인 특허 수를 입력해주세요.\n\n💡 특허 보유 시 기술사업화자금 우대!', type: 'number', placeholder: '없으면 0', section: '업종별 정보', icon: '📜' });
+      if (fields.includes('machine')) industrySpecific.push({ key: 'has_machine', text: '기계/설비 보유 여부를 선택해주세요.\n\n💡 설비 보유 시 담보 활용 가능!', type: 'choice', options: ['보유함', '보유 안함'], section: '업종별 정보', icon: '⚙️' });
+      if (fields.includes('online')) industrySpecific.push({ key: 'online_sales', text: '온라인 판매를 하시나요?\n\n💡 온라인 판매 시 스마트상점 우대!', type: 'choice', options: ['예', '아니오'], section: '업종별 정보', icon: '🛒' });
+      if (fields.includes('offline')) industrySpecific.push({ key: 'offline_store', text: '오프라인 매장을 보유하고 계신가요?', type: 'choice', options: ['보유함', '보유 안함'], section: '업종별 정보', icon: '🏪' });
+      if (fields.includes('kiosk')) industrySpecific.push({ key: 'kiosk', text: '키오스크를 사용하시나요?\n\n💡 키오스크 사용 시 스마트소상공인 우대!', type: 'choice', options: ['사용함', '사용 안함'], section: '업종별 정보', icon: '🖥️' });
+      if (fields.includes('delivery')) industrySpecific.push({ key: 'delivery', text: '배달앱을 사용하시나요?\n\n💡 배달앱 활용 시 한도 60%까지 확대!', type: 'choice', options: ['사용함', '사용 안함'], section: '업종별 정보', icon: '🛵' });
+      if (fields.includes('reservation')) industrySpecific.push({ key: 'reservation', text: '숙박앱(야놀자, 여기어때 등)을 사용하시나요?', type: 'choice', options: ['사용함', '사용 안함'], section: '업종별 정보', icon: '🏨' });
+
+      const remaining = [
+        { key: 'average_sales', text: '1년 평균 매출액을 입력해주세요.\n(단위: 만원)\n\n💡 매출이 높을수록 한도가 커집니다!', type: 'number', placeholder: '예: 50000 (5억원)', section: '매출 정보' },
+        { key: 'sales_growth', text: '최근 2년간 매출이 10% 이상 성장했나요?\n\n💡 성장기업은 금리 0.2%p 우대!', type: 'choice', options: ['예', '아니오'], section: '매출 정보' },
+        { key: 'mortgage_loan', text: '현재 담보대출 잔액을 입력해주세요.\n(단위: 만원)', type: 'number', placeholder: '없으면 0', section: '대출 정보' },
+        { key: 'credit_loan', text: '현재 신용대출 잔액을 입력해주세요.\n(단위: 만원)\n\n💡 기존 부채가 적을수록 승인 확률 UP!', type: 'number', placeholder: '없으면 0', section: '대출 정보' },
+        { key: 'KCB', text: 'KCB 신용점수를 입력해주세요.\n\n💡 모르시면 카카오뱅크 앱이나 토스에서\n쉽게 확인 가능해요!', type: 'number', placeholder: '예: 750', section: '신용 정보' },
+        { key: 'NICE', text: 'NICE 신용점수를 입력해주세요.\n\n💡 모르시면 카카오뱅크 앱이나 토스에서\n쉽게 확인 가능해요!', type: 'number', placeholder: '예: 800', section: '신용 정보' },
+        { key: 'overdue', text: '현재 연체 또는 체납이 있으신가요?\n\n⚠️ 연체 시 정책자금 이용이 불가합니다', type: 'choice', options: ['없음', '있음'], section: '신용 정보' }
+      ];
+
+      return [...base, ...industrySpecific, ...remaining];
+    }
+
+    // ============ 유틸리티 함수 ============
+    function getTime() {
+      const now = new Date();
+      return `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+    }
+
+    function formatMoney(num) {
+      if (num >= 10000) {
+        const 억 = Math.floor(num / 10000);
+        const 만 = num % 10000;
+        return 만 > 0 ? `${억}억 ${만.toLocaleString()}만원` : `${억}억원`;
+      }
+      return `${num.toLocaleString()}만원`;
+    }
+
+    function formatNumberInput(value) {
+      const num = value.replace(/[^0-9]/g, '');
+      return num ? parseInt(num).toLocaleString() : '';
+    }
+
+    function scrollToBottom() {
+      const chatMessages = document.getElementById('chatMessages');
+      setTimeout(() => { chatMessages.scrollTop = chatMessages.scrollHeight; }, 100);
+    }
+
+    function updateProgress() {
+      const progress = Math.min((currentStep / (questions.length - 1)) * 100, 100);
+      document.getElementById('progressFill').style.width = `${progress}%`;
+      document.getElementById('progressText').textContent = `${Math.round(progress)}%`;
+      if (currentStep > 0) document.getElementById('headerProgress').classList.add('active');
+    }
+
+    // ============ 메시지 렌더링 ============
+    function addBotMessage(question, showSection = true) {
+      const chatMessages = document.getElementById('chatMessages');
+      const prevSection = chatMessages.lastElementChild?.dataset?.section;
+      
+      const wrapper = document.createElement('div');
+      wrapper.className = 'message-wrapper bot';
+      wrapper.dataset.section = question.section;
+
+      let sectionBadge = '';
+      if (showSection && question.section && question.section !== 'intro' && question.section !== 'loading' && prevSection !== question.section) {
+        sectionBadge = `<div class="section-badge">${question.section}</div>`;
+      }
+
+      let iconHtml = question.icon ? `<div class="message-icon">${question.icon}</div>` : '';
+      let buttonsHtml = '';
+
+      if (question.type === 'button' && question.options) {
+        buttonsHtml = `<button class="start-btn" onclick="handleSubmit('${question.options[0]}')">${question.options[0]}<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7" /></svg></button>`;
+      } else if (question.type === 'choice' && question.options) {
+        buttonsHtml = `<div class="choice-buttons">${question.options.map(opt => `<button class="choice-btn" onclick="handleSubmit('${opt}')">${opt}</button>`).join('')}</div>`;
+      }
+      
+      // 분석하기 버튼 추가
+      if (question.showAnalysisBtn) {
+        buttonsHtml = `<button class="analysis-btn" onclick="openAnalysisModal()">
+          <span>📊 내 업장에 맞는 정책자금 분석하기</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </button>`;
+      }
+
+      wrapper.innerHTML = `
+        <div class="bot-avatar">🤖</div>
+        <div class="message-content">
+          ${sectionBadge}
+          <div class="message-bubble bot">
+            ${iconHtml}
+            <div class="message-text">${question.text}</div>
+            ${buttonsHtml}
+          </div>
+          <span class="message-time">${getTime()}</span>
+        </div>
+      `;
+
+      chatMessages.appendChild(wrapper);
+      scrollToBottom();
+
+      const chatInput = document.getElementById('chatInput');
+      const userInput = document.getElementById('userInput');
+      
+      if (question.type === 'text' || question.type === 'number') {
+        chatInput.classList.add('active');
+        userInput.placeholder = question.placeholder || '여기에 입력하세요';
+        userInput.dataset.type = question.type;
+        userInput.value = '';
+        userInput.focus();
+      } else {
+        chatInput.classList.remove('active');
+      }
+    }
+
+    function addUserMessage(text) {
+      const chatMessages = document.getElementById('chatMessages');
+      const wrapper = document.createElement('div');
+      wrapper.className = 'message-wrapper user';
+      wrapper.innerHTML = `<div class="message-content"><div class="message-bubble user"><div class="message-text">${text}</div></div><span class="message-time">${getTime()}</span></div>`;
+      chatMessages.appendChild(wrapper);
+      scrollToBottom();
+    }
+
+    function showTyping() {
+      const chatMessages = document.getElementById('chatMessages');
+      const wrapper = document.createElement('div');
+      wrapper.className = 'message-wrapper bot';
+      wrapper.id = 'typingIndicator';
+      wrapper.innerHTML = `<div class="bot-avatar">🤖</div><div class="message-content"><div class="message-bubble bot"><div class="typing-dots"><span></span><span></span><span></span></div></div></div>`;
+      chatMessages.appendChild(wrapper);
+      scrollToBottom();
+    }
+
+    function hideTyping() {
+      const typing = document.getElementById('typingIndicator');
+      if (typing) typing.remove();
+    }
+
+    // ============ 제출 처리 ============
+    function handleSubmit(value) {
+      if (currentStep >= questions.length) return;
+      
+      const question = questions[currentStep];
+      let displayValue = value;
+      let dataValue = value;
+
+      if (question.key === 'start') {
+        addUserMessage('시작할게요 ✨');
+        currentStep++;
+        updateProgress();
+        showTyping();
+        setTimeout(() => { hideTyping(); addBotMessage(questions[currentStep]); }, 600);
+        return;
+      }
+
+      if (question.type === 'number') {
+        const num = parseInt(value.toString().replace(/,/g, ''));
+        if (isNaN(num) || num < 0) {
+          showTyping();
+          setTimeout(() => { hideTyping(); addBotMessage({ text: '숫자를 정확히 입력해주세요 😊', section: 'error' }, false); }, 400);
+          return;
+        }
+        dataValue = num;
+        if (['average_sales', 'credit_loan', 'mortgage_loan'].includes(question.key)) displayValue = formatMoney(num);
+        else if (['NICE', 'KCB'].includes(question.key)) displayValue = `${num}점`;
+        else if (question.key === 'patent_count') displayValue = `${num}건`;
+      }
+
+      if (question.type === 'text' && !value.trim()) {
+        showTyping();
+        setTimeout(() => { hideTyping(); addBotMessage({ text: '내용을 입력해주세요 😊', section: 'error' }, false); }, 400);
+        return;
+      }
+
+      disableCurrentChoices();
+      addUserMessage(displayValue);
+      userData[question.key] = dataValue;
+
+      if (question.key === 'industry') questions = getQuestions(value);
+
+      currentStep++;
+      updateProgress();
+
+      if (currentStep < questions.length) {
+        showTyping();
+        setTimeout(() => { hideTyping(); addBotMessage(questions[currentStep]); }, 600);
+      } else {
+        showTyping();
+        setTimeout(() => {
+          hideTyping();
+          // 분석 전 신청 버튼 표시
+          addBotMessage({ 
+            text: '입력해주신 정보를 바탕으로\n<strong>맞춤 정책자금 분석</strong>을 진행해드립니다! 🎯\n\n아래 버튼을 클릭해주세요.', 
+            section: '분석 준비 완료',
+            showAnalysisBtn: true 
+          }, false);
+          document.getElementById('chatInput').classList.remove('active');
+          document.getElementById('headerProgress').classList.remove('active');
+        }, 600);
+      }
+
+      document.getElementById('userInput').value = '';
+      document.getElementById('sendBtn').disabled = true;
+    }
+
+    function disableCurrentChoices() {
+      const chatMessages = document.getElementById('chatMessages');
+      const lastBotMessage = chatMessages.querySelector('.message-wrapper.bot:last-of-type');
+      if (lastBotMessage) {
+        const buttons = lastBotMessage.querySelectorAll('.choice-btn, .start-btn');
+        buttons.forEach(btn => { btn.disabled = true; btn.style.opacity = '0.5'; btn.style.cursor = 'default'; btn.onclick = null; });
+      }
+    }
+
+    // ============ 고급 계산 로직 ============
+    
+    // 금리 계산 (NICE 점수 기반)
+    function calculateRate(nice) {
+      if (nice <= 650) return 4.3;
+      if (nice >= 850) return 3.1;
+      return parseFloat((4.3 - ((nice - 650) / 200) * 1.2).toFixed(2));
+    }
+
+    // 승인 확률 계산
+    function calculateProbability(data) {
+      const { average_sales, credit_loan, mortgage_loan, NICE, KCB, overdue, business_career } = data;
+      
+      if (overdue === '있음') return 0;
+      
+      let score = 93;
+      
+      // 매출 대비 부채 비율
+      const totalDebt = credit_loan + mortgage_loan;
+      const debtRatio = average_sales > 0 ? totalDebt / average_sales : 1;
+      score -= debtRatio * 25;
+      
+      // 매출 규모 보너스
+      if (average_sales > 0) score += Math.log10(average_sales) * 2;
+      
+      // 신용 점수 반영
+      const avgCredit = (NICE + KCB) / 2;
+      if (avgCredit >= 800) score += 5;
+      else if (avgCredit < 700) score -= 10;
+      
+      // 업력 반영
+      if (business_career === '1년 미만') score -= 5;
+      else if (business_career === '7년 이상' && debtRatio > 1) score -= 15;
+      
+      return Math.max(10, Math.min(95, Math.round(score)));
+    }
+
+    // 조건 분석
+    function getConditions(data) {
+      const expectLoan = ['7년 이상'].includes(data.business_career)
+        ? data.credit_loan + data.mortgage_loan
+        : data.credit_loan;
+
+      const unavailable = data.overdue === '있음' ||
+        (['7년 이상'].includes(data.business_career) && expectLoan > data.average_sales * 1.5);
+
+      const isHighCredit = data.NICE >= 750 && data.KCB >= 700;
+      const isSmart = [data.kiosk, data.delivery, data.reservation, data.online_sales].includes('사용함') || data.online_sales === '예';
+      const isGrowth = data.sales_growth === '예';
+      const hasTech = data.patent_count > 0;
+      const hasMachine = data.has_machine === '보유함';
+
+      let salesLevel;
+      if (data.average_sales < 2000) salesLevel = 'low';
+      else if (data.average_sales < 8000) salesLevel = 'mid';
+      else salesLevel = 'high';
+
+      return { unavailable, isHighCredit, isSmart, isGrowth, hasTech, hasMachine, salesLevel, expectLoan };
+    }
+
+    // 한도 계산
+    function calculateLimit(data) {
+      const conditions = getConditions(data);
+      if (conditions.unavailable) return 0;
+
+      let rate = 0.25; // 기본
+
+      // 스마트상점 우대
+      if (conditions.isSmart && conditions.isHighCredit) rate = 0.6;
+      else if (conditions.isSmart) rate = 0.4;
+      // 매출 규모별
+      else if (conditions.salesLevel === 'low') rate = conditions.isHighCredit ? 0.3 : 0.25;
+      else if (conditions.salesLevel === 'mid') rate = conditions.isHighCredit ? 0.5 : 0.35;
+      else rate = conditions.isHighCredit ? 0.45 : 0.3;
+
+      // 우대 가산
+      if (conditions.hasTech) rate += 0.1;
+      if (conditions.isGrowth) rate += 0.05;
+      if (conditions.hasMachine) rate += 0.05;
+
+      return Math.floor(data.average_sales * rate);
+    }
+
+    // 추천 상품 선정 (소상공인/중소기업 분류)
+    function getRecommendedProducts(data) {
+      const conditions = getConditions(data);
+      const products = [];
+      const limit = calculateLimit(data);
+      const isSmall = isSmallBusiness(data);
+      
+      // 기업 유형 저장
+      data.businessCategory = isSmall ? '소상공인' : '중소기업';
+
+      if (isSmall) {
+        // ============ 소상공인 추천 ============
+        
+        // 저신용자 (NCB 839점 이하)
+        if (data.NICE <= 839) {
+          products.push({
+            ...smallBizFunds.low_credit,
+            estimatedLimit: 3000,
+            estimatedRate: smallBizFunds.low_credit.minRate
+          });
+          // 미소금융도 추천
+          if (data.NICE <= 749) {
+            products.push({
+              ...smallBizFunds.miso_finance,
+              estimatedLimit: 7000,
+              estimatedRate: smallBizFunds.miso_finance.minRate
+            });
+          }
+        }
+
+        // 스마트 소상공인 (배달앱, 키오스크 등)
+        if (conditions.isSmart) {
+          products.push({
+            ...smallBizFunds.innovation_growth,
+            estimatedLimit: Math.min(limit * 1.5, 20000),
+            estimatedRate: smallBizFunds.innovation_growth.minRate
+          });
+        }
+
+        // 청년 소상공인 (업력 3년 미만)
+        if (['1년 미만', '3년 미만'].includes(data.business_career)) {
+          products.push({
+            ...smallBizFunds.youth_employ,
+            estimatedLimit: Math.min(limit, 7000),
+            estimatedRate: smallBizFunds.youth_employ.minRate
+          });
+        }
+
+        // 제조업 소공인
+        if (data.industry === '제조업') {
+          products.push({
+            ...smallBizFunds.small_manufacturer,
+            estimatedLimit: Math.min(limit * 2, 50000),
+            estimatedRate: smallBizFunds.small_manufacturer.minRate
+          });
+        }
+
+        // 매출 성장 소상공인
+        if (conditions.isGrowth) {
+          products.push({
+            ...smallBizFunds.innovation_growth,
+            estimatedLimit: Math.min(limit * 1.3, 20000),
+            estimatedRate: smallBizFunds.innovation_growth.minRate - 0.2
+          });
+        }
+
+        // 기본: 일반경영안정자금 (모든 소상공인)
+        products.push({
+          ...smallBizFunds.general_stable,
+          estimatedLimit: Math.min(limit, 7000),
+          estimatedRate: smallBizFunds.general_stable.minRate
+        });
+
+        // 지역신보 보증 추천
+        if (data.NICE >= 700) {
+          products.push({
+            ...smallBizFunds.local_guarantee,
+            estimatedLimit: Math.min(limit * 1.5, 30000),
+            estimatedRate: smallBizFunds.local_guarantee.minRate
+          });
+        }
+
+      } else {
+        // ============ 중소기업 추천 ============
+
+        // 특허/기술 보유 기업
+        if (conditions.hasTech) {
+          products.push({
+            ...smeFunds.tech_commercialize,
+            estimatedLimit: Math.min(limit * 3, 300000),
+            estimatedRate: smeFunds.tech_commercialize.minRate
+          });
+          // 기술보증기금도 추천
+          products.push({
+            ...smeFunds.kibo_tech,
+            estimatedLimit: Math.min(limit * 2, 100000),
+            estimatedRate: smeFunds.kibo_tech.minRate
+          });
+        }
+
+        // 업력 7년 미만 창업기업
+        if (['1년 미만', '3년 미만', '5년 미만', '7년 미만'].includes(data.business_career)) {
+          products.push({
+            ...smeFunds.startup_base,
+            estimatedLimit: Math.min(limit * 2, 60000),
+            estimatedRate: smeFunds.startup_base.minRate
+          });
+          // 청년 창업자
+          if (['1년 미만', '3년 미만'].includes(data.business_career)) {
+            products.push({
+              ...smeFunds.youth_startup,
+              estimatedLimit: Math.min(limit, 20000),
+              estimatedRate: smeFunds.youth_startup.minRate
+            });
+          }
+          // 창업기업육성 보증
+          products.push({
+            ...smeFunds.startup_nest,
+            estimatedLimit: Math.min(limit * 1.5, 50000),
+            estimatedRate: smeFunds.startup_nest.minRate
+          });
+        }
+
+        // 스마트공장 도입 기업
+        if (conditions.hasMachine || data.industry === '제조업') {
+          products.push({
+            ...smeFunds.smart_factory,
+            estimatedLimit: Math.min(limit * 3, 100000),
+            estimatedRate: smeFunds.smart_factory.minRate
+          });
+        }
+
+        // 수출 기업
+        if (conditions.isGrowth && data.average_sales >= 50000) {
+          products.push({
+            ...smeFunds.export_global,
+            estimatedLimit: Math.min(limit * 2, 100000),
+            estimatedRate: smeFunds.export_global.minRate
+          });
+        } else {
+          products.push({
+            ...smeFunds.export_domestic,
+            estimatedLimit: Math.min(limit, 50000),
+            estimatedRate: smeFunds.export_domestic.minRate
+          });
+        }
+
+        // 업력 7년 이상 성장기업
+        if (data.business_career === '7년 이상' && conditions.isGrowth) {
+          products.push({
+            ...smeFunds.innovation_growth_sme,
+            estimatedLimit: Math.min(limit * 3, 100000),
+            estimatedRate: smeFunds.innovation_growth_sme.minRate
+          });
+        }
+
+        // 기본: 신용보증기금 보증
+        products.push({
+          ...smeFunds.kodit_general,
+          estimatedLimit: Math.min(limit * 2, 80000),
+          estimatedRate: smeFunds.kodit_general.minRate
+        });
+      }
+
+      // 중복 제거 및 상위 5개만 반환
+      const uniqueProducts = products.filter((p, i, arr) => 
+        arr.findIndex(x => x.name === p.name) === i
+      ).slice(0, 5);
+
+      return uniqueProducts;
+    }
+
+    function formatLimit(val) {
+      if (val === 0) return '진행 불가';
+      if (val >= 100000) {
+        const 억 = Math.floor(val / 10000);
+        return `${억}억원`;
+      }
+      if (val >= 10000) {
+        const 억 = Math.floor(val / 10000);
+        const 만 = val % 10000;
+        return 만 > 0 ? `${억}억 ${만.toLocaleString()}만원` : `${억}억원`;
+      }
+      return `${val.toLocaleString()}만원`;
+    }
+
+    // ============ 상환 계산기 ============
+    function toggleCalculator() {
+      const body = document.getElementById('calcBody');
+      const arrow = document.getElementById('calcArrow');
+      body.classList.toggle('open');
+      arrow.classList.toggle('open');
+    }
+
+    function calculateSchedule() {
+      const amount = parseInt(document.getElementById('calcAmount').value.replace(/,/g, '')) || 0;
+      const rate = parseFloat(document.getElementById('calcRate').value) || 0;
+      const grace = parseInt(document.getElementById('calcGrace').value) || 0;
+      const period = parseInt(document.getElementById('calcPeriod').value) || 0;
+      const method = document.getElementById('calcMethod').value;
+
+      if (amount <= 0 || rate <= 0 || period <= 0) {
+        alert('올바른 값을 입력해주세요.');
+        return;
+      }
+
+      const monthlyRate = rate / 100 / 12;
+      const totalMonths = period * 12;
+      const graceMonths = grace * 12;
+      const repayMonths = totalMonths - graceMonths;
+
+      let schedule = [];
+      let totalInterest = 0;
+      let totalPayment = 0;
+      let balance = amount;
+
+      // 거치기간
+      for (let i = 1; i <= graceMonths; i++) {
+        const interest = Math.round(balance * monthlyRate);
+        totalInterest += interest;
+        totalPayment += interest;
+        schedule.push({
+          month: i,
+          principal: 0,
+          interest: interest,
+          payment: interest,
+          balance: balance
+        });
+      }
+
+      // 상환기간
+      if (method === 'equal_principal_interest') {
+        // 원리금균등
+        const monthlyPayment = Math.round(amount * monthlyRate * Math.pow(1 + monthlyRate, repayMonths) / (Math.pow(1 + monthlyRate, repayMonths) - 1));
+        
+        for (let i = graceMonths + 1; i <= totalMonths; i++) {
+          const interest = Math.round(balance * monthlyRate);
+          const principal = monthlyPayment - interest;
+          balance = Math.max(0, balance - principal);
+          totalInterest += interest;
+          totalPayment += monthlyPayment;
+          schedule.push({
+            month: i,
+            principal: principal,
+            interest: interest,
+            payment: monthlyPayment,
+            balance: Math.round(balance)
+          });
+        }
+      } else {
+        // 원금균등
+        const monthlyPrincipal = Math.round(amount / repayMonths);
+        
+        for (let i = graceMonths + 1; i <= totalMonths; i++) {
+          const interest = Math.round(balance * monthlyRate);
+          const principal = i === totalMonths ? balance : monthlyPrincipal;
+          balance = Math.max(0, balance - principal);
+          const payment = principal + interest;
+          totalInterest += interest;
+          totalPayment += payment;
+          schedule.push({
+            month: i,
+            principal: principal,
+            interest: interest,
+            payment: payment,
+            balance: Math.round(balance)
+          });
+        }
+      }
+
+      // 결과 표시
+      const resultDiv = document.getElementById('calcResult');
+      resultDiv.classList.add('show');
+
+      document.getElementById('totalInterest').textContent = formatMoney(totalInterest);
+      document.getElementById('totalPayment').textContent = formatMoney(totalPayment);
+      document.getElementById('monthlyAvg').textContent = formatMoney(Math.round(totalPayment / totalMonths));
+
+      // 스케줄 테이블
+      const tableBody = document.getElementById('scheduleBody');
+      tableBody.innerHTML = schedule.map(s => `
+        <tr>
+          <td>${s.month}회차</td>
+          <td>${s.principal.toLocaleString()}</td>
+          <td>${s.interest.toLocaleString()}</td>
+          <td style="font-weight:600;">${s.payment.toLocaleString()}</td>
+          <td>${s.balance.toLocaleString()}</td>
+        </tr>
+      `).join('');
+    }
+
+    // ============ 결과 표시 ============
+    function showResult() {
+      const conditions = getConditions(userData);
+      const limit = calculateLimit(userData);
+      const rate = calculateRate(userData.NICE);
+      const probability = calculateProbability(userData);
+      const recommendedProducts = getRecommendedProducts(userData);
+      const circumference = 2 * Math.PI * 54;
+      const strokeDasharray = `${(probability / 100) * circumference} ${circumference}`;
+
+      // 분석 결과를 전역 변수에 저장
+      const bizCategory = userData.businessCategory || '소상공인';
+      analysisResult = {
+        limit: limit,
+        rate: rate,
+        probability: probability,
+        products: recommendedProducts,
+        bizCategory: bizCategory
+      };
+
+      const chatMessages = document.getElementById('chatMessages');
+      const resultCard = document.createElement('div');
+      resultCard.className = 'result-card';
+
+      if (conditions.unavailable) {
+        resultCard.innerHTML = `
+          <div class="result-header">
+            <div class="result-badge" style="background:linear-gradient(135deg,#ef4444,#f87171);">분석 완료</div>
+            <h2>'${userData.company}'</h2>
+            <p>정책자금 조달 가능성 분석 결과</p>
+          </div>
+          <div class="result-unavailable">
+            <div class="unavailable-icon">😔</div>
+            <h3>현재 진행이 어렵습니다</h3>
+            <p>${userData.overdue === '있음' ? '연체/체납 해소 후 다시 시도해주세요.\n\n정책자금은 연체 이력이 있으면 이용이 불가합니다.' : '대출 규모가 매출 대비 높습니다.\n\n기존 부채를 일부 상환 후 재신청을 권장드립니다.'}</p>
+          </div>
+          <div class="result-notice">
+            💡 <strong>Tip:</strong> 연체 해소 또는 부채 정리 후 재진단 받으시면<br>정책자금 이용이 가능할 수 있습니다.
+          </div>
+          <button class="restart-btn" onclick="resetChat()">
+            <span>다시 분석하기</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15" />
+            </svg>
+          </button>
+        `;
+      } else {
+        // 인사이트 생성
+        let insights = [];
+        
+        // 기업 분류 인사이트 (맨 앞에 추가)
+        const bizCategory = userData.businessCategory || '소상공인';
+        if (bizCategory === '소상공인') {
+          insights.push({ icon: '🏪', text: `소상공인 분류 - 소진공/지역신보/서민금융 자금 대상`, type: 'positive' });
+        } else {
+          insights.push({ icon: '🏢', text: `중소기업 분류 - 중진공/신보/기보 자금 대상`, type: 'positive' });
+        }
+        
+        if (conditions.isHighCredit) insights.push({ icon: '✅', text: '신용등급 우수 - 최저금리 적용 가능', type: 'positive' });
+        else insights.push({ icon: '💡', text: '신용점수 개선 시 금리 우대 가능', type: 'warning' });
+        
+        if (conditions.salesLevel === 'high') insights.push({ icon: '✅', text: '매출규모 양호 - 고한도 이용 가능', type: 'positive' });
+        else if (conditions.salesLevel === 'mid') insights.push({ icon: '📈', text: '성장단계 기업 - 성장지원자금 추천', type: '' });
+        else insights.push({ icon: '💡', text: '소규모 사업자 - 경영안정자금 추천', type: '' });
+
+        if (conditions.hasTech) insights.push({ icon: '🏆', text: `특허 ${userData.patent_count}건 보유 - 기술사업화자금 우대`, type: 'positive' });
+        if (conditions.isGrowth) insights.push({ icon: '🚀', text: '매출 성장 기업 - 금리 0.2%p 우대 적용', type: 'positive' });
+        if (conditions.isSmart) insights.push({ icon: '📱', text: '스마트상점 인정 - 한도 60%까지 확대', type: 'positive' });
+        if (conditions.hasMachine) insights.push({ icon: '🏭', text: '설비 보유 - 시설자금/담보대출 가능', type: 'positive' });
+
+        const insightsHtml = insights.map(i => `<div class="insight-item ${i.type}"><span class="insight-icon">${i.icon}</span><span>${i.text}</span></div>`).join('');
+
+        // 기업 분류 표시
+        const categoryColor = bizCategory === '소상공인' ? '#10b981' : '#6366f1';
+        const categoryIcon = bizCategory === '소상공인' ? '🏪' : '🏢';
+
+        // 추천 상품 HTML (새로운 양식 + 신청하기 버튼)
+        const productsHtml = recommendedProducts.map((p, idx) => `
+          <div class="recommend-item">
+            <div class="recommend-item-header">
+              <div class="recommend-item-number">${idx + 1}</div>
+              <div class="recommend-item-title-wrap">
+                <div class="recommend-item-title">${p.name}</div>
+                <div class="recommend-item-org">${p.org}</div>
+              </div>
+            </div>
+            <div class="recommend-item-body">
+              <div class="recommend-info-row">
+                <span class="recommend-info-label">자금대상</span>
+                <span class="recommend-info-value">${p.target}</span>
+              </div>
+              <div class="recommend-info-row">
+                <span class="recommend-info-label">최대한도</span>
+                <span class="recommend-info-value highlight">${formatLimit(p.maxLimit)}</span>
+              </div>
+              <div class="recommend-info-row">
+                <span class="recommend-info-label">최저금리</span>
+                <span class="recommend-info-value">${p.minRate}%</span>
+              </div>
+              <div class="recommend-info-row">
+                <span class="recommend-info-label">상환기간</span>
+                <span class="recommend-info-value">${p.period}</span>
+              </div>
+              <div class="recommend-estimate">
+                <div class="recommend-estimate-row">
+                  <span>예상 한도: <strong>${formatLimit(p.estimatedLimit)}</strong></span>
+                  <span>예상 금리: <strong>${p.estimatedRate.toFixed(2)}%</strong></span>
+                </div>
+                <button class="cta-item-btn" onclick='openModal("consultModal", ${JSON.stringify(p).replace(/'/g, "&#39;")})'>
+                  📞 무료자문상담
+                </button>
+              </div>
+            </div>
+          </div>
+        `).join('');
+
+        resultCard.innerHTML = `
+          <div class="result-header">
+            <div class="result-badge">분석 완료</div>
+            <h2>'${userData.company}'</h2>
+            <p>정책자금 조달 가능성 분석 결과</p>
+          </div>
+
+          <!-- 기업 분류 배지 -->
+          <div class="biz-category-badge" style="background: ${categoryColor};">
+            <span class="biz-category-icon">${categoryIcon}</span>
+            <span class="biz-category-text">${bizCategory} 정책자금 추천</span>
+            <span class="biz-category-sub">${bizCategory === '소상공인' ? '(소진공·지역신보·서민금융)' : '(중진공·신보·기보)'}</span>
+          </div>
+
+          <!-- 통계 배너 -->
+          <div class="stats-banner">
+            <div class="stats-banner-title">📊 2025년 정부 정책금융 현황</div>
+            <div class="stats-banner-items">
+              <div class="stats-banner-item">
+                <div class="stats-banner-value">26.5조</div>
+                <div class="stats-banner-label">총 지원규모</div>
+              </div>
+              <div class="stats-banner-item">
+                <div class="stats-banner-value">2.98%</div>
+                <div class="stats-banner-label">평균 금리</div>
+              </div>
+              <div class="stats-banner-item">
+                <div class="stats-banner-value">${bizCategory === '소상공인' ? '3.77조' : '4.5조'}</div>
+                <div class="stats-banner-label">${bizCategory} 배정</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="result-gauge">
+            <svg viewBox="0 0 120 120">
+              <circle cx="60" cy="60" r="54" class="gauge-bg" />
+              <circle cx="60" cy="60" r="54" class="gauge-fill" style="stroke-dasharray: ${strokeDasharray}" />
+            </svg>
+            <div class="gauge-text">
+              <span class="gauge-value">${probability}</span>
+              <span class="gauge-unit">%</span>
+            </div>
+            <div class="gauge-label">${probability >= 80 ? '승인 가능성 매우 높음 🎉' : probability >= 60 ? '승인 가능성 양호 👍' : '조건 개선 권장 📊'}</div>
+          </div>
+
+          <!-- 메인 CTA 버튼 -->
+          <button class="cta-main-btn" onclick="openModal('consultModal')">
+            ✅ 승인가능여부 조회
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </button>
+
+          <div class="result-stats">
+            <div class="stat-card">
+              <div class="stat-icon">💰</div>
+              <div class="stat-label">예상 최대 한도</div>
+              <div class="stat-value">${formatLimit(limit)}</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon">📈</div>
+              <div class="stat-label">예상 적용 금리</div>
+              <div class="stat-value">${rate}%</div>
+            </div>
+          </div>
+
+          <!-- 추천 상품 -->
+          <div class="recommend-section">
+            <h4>🎯 ${bizCategory} 맞춤 추천 정책자금</h4>
+            <div class="recommend-list">
+              ${productsHtml}
+            </div>
+          </div>
+
+          <!-- 인사이트 -->
+          <div class="result-insights">
+            <h4>✨ 분석 인사이트</h4>
+            <div class="insight-list">${insightsHtml}</div>
+          </div>
+
+          <!-- 상환 계산기 -->
+          <div class="calculator-section">
+            <div class="calculator-header" onclick="toggleCalculator()">
+              <span>🧮 이자/상환 스케줄 계산기</span>
+              <span class="calculator-arrow" id="calcArrow">▼</span>
+            </div>
+            <div class="calculator-body" id="calcBody">
+              <div class="calc-row">
+                <label class="calc-label">대출 금액 (만원)</label>
+                <input type="text" class="calc-input" id="calcAmount" value="${limit.toLocaleString()}" oninput="this.value=formatNumberInput(this.value)">
+              </div>
+              <div class="calc-row">
+                <label class="calc-label">연 금리 (%)</label>
+                <input type="number" step="0.1" class="calc-input" id="calcRate" value="${rate}">
+              </div>
+              <div class="calc-row-inline">
+                <div class="calc-row">
+                  <label class="calc-label">거치 기간 (년)</label>
+                  <select class="calc-select" id="calcGrace">
+                    <option value="0">없음</option>
+                    <option value="1">1년</option>
+                    <option value="2" selected>2년</option>
+                    <option value="3">3년</option>
+                  </select>
+                </div>
+                <div class="calc-row">
+                  <label class="calc-label">총 대출 기간 (년)</label>
+                  <select class="calc-select" id="calcPeriod">
+                    <option value="3">3년</option>
+                    <option value="5" selected>5년</option>
+                    <option value="7">7년</option>
+                    <option value="10">10년</option>
+                  </select>
+                </div>
+              </div>
+              <div class="calc-row">
+                <label class="calc-label">상환 방식</label>
+                <select class="calc-select" id="calcMethod">
+                  <option value="equal_principal_interest">원리금균등분할</option>
+                  <option value="equal_principal">원금균등분할</option>
+                </select>
+              </div>
+              <button class="calc-btn" onclick="calculateSchedule()">상환 스케줄 계산</button>
+              
+              <div class="calc-result" id="calcResult">
+                <div class="calc-result-summary">
+                  <div class="calc-summary-item">
+                    <div class="calc-summary-label">총 이자</div>
+                    <div class="calc-summary-value primary" id="totalInterest">-</div>
+                  </div>
+                  <div class="calc-summary-item">
+                    <div class="calc-summary-label">총 상환액</div>
+                    <div class="calc-summary-value" id="totalPayment">-</div>
+                  </div>
+                  <div class="calc-summary-item">
+                    <div class="calc-summary-label">월 평균 납부액</div>
+                    <div class="calc-summary-value primary" id="monthlyAvg">-</div>
+                  </div>
+                </div>
+                <div class="schedule-table-wrapper">
+                  <table class="schedule-table">
+                    <thead>
+                      <tr>
+                        <th>회차</th>
+                        <th>원금</th>
+                        <th>이자</th>
+                        <th>납부액</th>
+                        <th>잔액</th>
+                      </tr>
+                    </thead>
+                    <tbody id="scheduleBody"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 상세정보 -->
+          <details class="result-details">
+            <summary>📋 입력 정보 확인</summary>
+            <div class="details-grid">
+              <div><span>사업장</span><strong>${userData.company}</strong></div>
+              <div><span>형태</span><strong>${userData.business_type}</strong></div>
+              <div><span>업종</span><strong>${userData.industry}</strong></div>
+              <div><span>업력</span><strong>${userData.business_career}</strong></div>
+              <div><span>연매출</span><strong>${formatMoney(userData.average_sales)}</strong></div>
+              <div><span>신용대출</span><strong>${formatMoney(userData.credit_loan)}</strong></div>
+              <div><span>담보대출</span><strong>${formatMoney(userData.mortgage_loan)}</strong></div>
+              <div><span>신용점수</span><strong>NICE ${userData.NICE} / KCB ${userData.KCB}</strong></div>
+            </div>
+          </details>
+
+          <div class="result-notice">
+            ※ 본 결과는 입력 정보 기반 예상치이며, 실제 심사 결과와 다를 수 있습니다.<br>
+            ※ 정확한 한도/금리는 정책자금 신청 후 심사를 통해 확정됩니다.<br>
+            ※ 2025년 소상공인 정책자금 기준금리: 연 2.98% (분기별 변동)
+          </div>
+
+          <button class="restart-btn" onclick="resetChat()">
+            <span>다시 분석하기</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15" />
+            </svg>
+          </button>
+        `;
+      }
+
+      chatMessages.appendChild(resultCard);
+      scrollToBottom();
+    }
+
+    // ============ 초기화 ============
+    function resetChat() {
+      currentStep = 0;
+      questions = getQuestions('');
+      userData = {
+        company: '', business_type: '', industry: '', business_career: '',
+        patent_count: 0, has_machine: '', online_sales: '', offline_store: '',
+        kiosk: '', delivery: '', reservation: '', average_sales: 0,
+        sales_growth: '', mortgage_loan: 0, credit_loan: 0, KCB: 0, NICE: 0, overdue: ''
+      };
+
+      document.getElementById('chatMessages').innerHTML = '';
+      document.getElementById('chatInput').classList.remove('active');
+      document.getElementById('headerProgress').classList.remove('active');
+      document.getElementById('progressFill').style.width = '0%';
+      document.getElementById('progressText').textContent = '0%';
+      document.getElementById('userInput').value = '';
+      document.getElementById('sendBtn').disabled = true;
+
+      setTimeout(() => addBotMessage(questions[0]), 300);
+    }
+
+    // ============ 이벤트 리스너 ============
+    document.addEventListener('DOMContentLoaded', function() {
+      questions = getQuestions('');
+      setTimeout(() => addBotMessage(questions[0]), 500);
+
+      const userInput = document.getElementById('userInput');
+      const sendBtn = document.getElementById('sendBtn');
+
+      userInput.addEventListener('input', function(e) {
+        const type = this.dataset.type;
+        if (type === 'number') this.value = formatNumberInput(this.value);
+        sendBtn.disabled = !this.value.trim();
+      });
+
+      userInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter' && this.value.trim()) handleSubmit(this.value.trim());
+      });
+
+      sendBtn.addEventListener('click', function() {
+        const value = userInput.value.trim();
+        if (value) handleSubmit(value);
+      });
+    });
+  </script>
+</body>
+</html>
