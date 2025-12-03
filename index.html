@@ -881,6 +881,31 @@
 
     .svg-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
 
+    /* ============ 스크롤 페이드인 애니메이션 ============ */
+    .fade-in-section {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+    }
+    .fade-in-section.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .fade-in-section:nth-child(1) { transition-delay: 0s; }
+    .fade-in-section:nth-child(2) { transition-delay: 0.1s; }
+    .fade-in-section:nth-child(3) { transition-delay: 0.15s; }
+    .fade-in-section:nth-child(4) { transition-delay: 0.2s; }
+    .fade-in-section:nth-child(5) { transition-delay: 0.25s; }
+    .fade-in-section:nth-child(6) { transition-delay: 0.3s; }
+    .fade-in-section:nth-child(7) { transition-delay: 0.35s; }
+    
+    /* 초기 로드 시 첫 번째 요소들은 바로 보이게 */
+    .result-card .fade-in-section.instant {
+      opacity: 1;
+      transform: translateY(0);
+      transition: none;
+    }
+
     /* ============ 분석하기 버튼 스타일 ============ */
     .analysis-btn {
       display: flex;
@@ -2905,21 +2930,21 @@
         `).join('');
 
         resultCard.innerHTML = `
-          <div class="result-header">
+          <div class="result-header fade-in-section instant">
             <div class="result-badge">분석 완료</div>
             <h2>'${userData.company}'</h2>
             <p>정책자금 조달 가능성 분석 결과</p>
           </div>
 
           <!-- 기업 분류 배지 -->
-          <div class="biz-category-badge" style="background: ${categoryColor};">
+          <div class="biz-category-badge fade-in-section instant" style="background: ${categoryColor};">
             <span class="biz-category-icon">${categoryIcon}</span>
             <span class="biz-category-text">${bizCategory} 정책자금 추천</span>
             <span class="biz-category-sub">${bizCategory === '소상공인' ? '(소진공·지역신보·서민금융)' : '(중진공·신보·기보)'}</span>
           </div>
 
           <!-- 통계 배너 -->
-          <div class="stats-banner">
+          <div class="stats-banner fade-in-section instant">
             <div class="stats-banner-title">📊 2025년 정부 정책금융 현황</div>
             <div class="stats-banner-items">
               <div class="stats-banner-item">
@@ -2937,7 +2962,7 @@
             </div>
           </div>
           
-          <div class="result-gauge">
+          <div class="result-gauge fade-in-section instant">
             <svg viewBox="0 0 120 120">
               <circle cx="60" cy="60" r="54" class="gauge-bg" />
               <circle cx="60" cy="60" r="54" class="gauge-fill" style="stroke-dasharray: ${strokeDasharray}" />
@@ -2949,7 +2974,7 @@
             <div class="gauge-label">${probability >= 80 ? '승인 가능성 매우 높음 🎉' : probability >= 60 ? '승인 가능성 양호 👍' : '조건 개선 권장 📊'}</div>
           </div>
 
-          <div class="result-stats">
+          <div class="result-stats fade-in-section instant">
             <div class="stat-card">
               <div class="stat-icon">💰</div>
               <div class="stat-label">예상 최대 한도</div>
@@ -2963,13 +2988,13 @@
           </div>
 
           <!-- 간단한 인사이트 (핵심만) -->
-          <div class="result-insights">
+          <div class="result-insights fade-in-section">
             <h4>✨ 간단 분석 피드백</h4>
             <div class="insight-list">${insightsHtml}</div>
           </div>
 
           <!-- CTA 섹션 -->
-          <div class="cta-section">
+          <div class="cta-section fade-in-section">
             <div class="cta-notice">
               <div class="cta-notice-icon">🔍</div>
               <div class="cta-notice-text">
@@ -3001,12 +3026,12 @@
             </div>
           </div>
 
-          <div class="result-notice">
+          <div class="result-notice fade-in-section">
             ※ 본 결과는 입력 정보 기반 예상치이며, 실제 심사 결과와 다를 수 있습니다.<br>
             ※ 정확한 한도/금리 및 추천 상품은 상담을 통해 확인 가능합니다.
           </div>
 
-          <button class="restart-btn" onclick="resetChat()">
+          <button class="restart-btn fade-in-section" onclick="resetChat()">
             <span>다시 분석하기</span>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15" />
@@ -3017,6 +3042,31 @@
 
       chatMessages.appendChild(resultCard);
       scrollToBottom();
+      
+      // 스크롤 페이드인 애니메이션 초기화
+      initScrollAnimation();
+    }
+
+    // ============ 스크롤 페이드인 애니메이션 ============
+    function initScrollAnimation() {
+      const fadeElements = document.querySelectorAll('.fade-in-section:not(.instant)');
+      
+      const observerOptions = {
+        root: document.getElementById('chatMessages'),
+        rootMargin: '0px 0px -50px 0px',
+        threshold: 0.1
+      };
+      
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      }, observerOptions);
+      
+      fadeElements.forEach(el => observer.observe(el));
     }
 
     // ============ 초기화 ============
