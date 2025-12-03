@@ -3041,7 +3041,11 @@
       }
 
       chatMessages.appendChild(resultCard);
-      scrollToBottom();
+      
+      // 결과 카드의 상단이 보이도록 스크롤 (CTA가 아닌 분석결과부터 보이게)
+      setTimeout(() => {
+        resultCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
       
       // 스크롤 페이드인 애니메이션 초기화
       initScrollAnimation();
