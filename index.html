@@ -1,3123 +1,1081 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="theme-color" content="#1e1b4b">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>정책자금 분석 챗봇</title>
-  <link rel="preconnect" href="https://cdn.jsdelivr.net">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
-  
-  <!-- 소스코드 보호 -->
-  <script>
-  (function(){
-    // 우클릭 방지
-    document.addEventListener('contextmenu', function(e) {
-      e.preventDefault();
-      return false;
-    });
-    
-    // 키보드 단축키 방지
-    document.addEventListener('keydown', function(e) {
-      // F12 방지
-      if (e.key === 'F12' || e.keyCode === 123) {
-        e.preventDefault();
-        return false;
-      }
-      // Ctrl+Shift+I (개발자도구)
-      if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.keyCode === 73)) {
-        e.preventDefault();
-        return false;
-      }
-      // Ctrl+Shift+J (콘솔)
-      if (e.ctrlKey && e.shiftKey && (e.key === 'J' || e.key === 'j' || e.keyCode === 74)) {
-        e.preventDefault();
-        return false;
-      }
-      // Ctrl+Shift+C (요소검사)
-      if (e.ctrlKey && e.shiftKey && (e.key === 'C' || e.key === 'c' || e.keyCode === 67)) {
-        e.preventDefault();
-        return false;
-      }
-      // Ctrl+U (소스보기)
-      if (e.ctrlKey && (e.key === 'U' || e.key === 'u' || e.keyCode === 85)) {
-        e.preventDefault();
-        return false;
-      }
-      // Ctrl+S (저장)
-      if (e.ctrlKey && (e.key === 'S' || e.key === 's' || e.keyCode === 83)) {
-        e.preventDefault();
-        return false;
-      }
-    });
-    
-    // 드래그 방지
-    document.addEventListener('dragstart', function(e) {
-      e.preventDefault();
-      return false;
-    });
-    
-    // 선택 방지 (입력 필드 제외)
-    document.addEventListener('selectstart', function(e) {
-      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-        return true;
-      }
-      e.preventDefault();
-      return false;
-    });
-  })();
-  </script>
-  
-  <style>
-    /* iframe 및 모바일 최적화 */
-    :root {
-      --safe-top: env(safe-area-inset-top, 0px);
-      --safe-bottom: env(safe-area-inset-bottom, 0px);
-    }
-    * { 
-      box-sizing: border-box; 
-      margin: 0; 
-      padding: 0;
-      -webkit-tap-highlight-color: transparent;
-    }
-    html, body {
-      width: 100%;
-      height: 100%;
-      margin: 0;
-      padding: 0;
-      overflow: hidden;
-    }
-    html { 
-      height: 100%;
-      height: -webkit-fill-available; 
-    }
-    body {
-      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
-      background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
-      min-height: 100%;
-      min-height: 100vh;
-      min-height: -webkit-fill-available;
-      -webkit-font-smoothing: antialiased;
-      touch-action: manipulation;
-      /* 선택 방지 */
-      -webkit-user-select: none;
-      -moz-user-select: none;
-      -ms-user-select: none;
-      user-select: none;
-    }
-    /* 입력 필드는 선택 허용 */
-    input, textarea {
-      -webkit-user-select: text;
-      -moz-user-select: text;
-      -ms-user-select: text;
-      user-select: text;
-    }
-    .chatbot-container {
-      display: flex;
-      flex-direction: column;
-      width: 100%;
-      height: 100%;
-      height: 100vh;
-      height: 100dvh;
-      max-width: 100%;
-      margin: 0;
-      padding: 0;
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#FFFFFF">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>정책자금 초정밀 분석</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/static/pretendard.css">
+<script>
+(function(){
+  document.addEventListener('contextmenu',function(e){e.preventDefault();});
+  document.addEventListener('keydown',function(e){
+    if(e.key==='F12'||e.keyCode===123){e.preventDefault();}
+    if(e.ctrlKey&&e.shiftKey&&['I','i','J','j','C','c'].includes(e.key)){e.preventDefault();}
+    if(e.ctrlKey&&['U','u','S','s'].includes(e.key)){e.preventDefault();}
+  });
+  document.addEventListener('selectstart',function(e){if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA'||e.target.tagName==='SELECT')return true;e.preventDefault();});
+})();
+</script>
+<style>
+:root {
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --bg: #FFFFFF;
+  --bg-secondary: #F7F8FA;
+  --bg-card: #F9FAFB;
+  --text-primary: #191F28;
+  --text-secondary: #6B7684;
+  --text-tertiary: #8B95A1;
+  --blue: #3182F6;
+  --blue-bg: #EBF2FF;
+  --blue-dark: #1B64DA;
+  --green: #00C471;
+  --green-bg: #E8FAF0;
+  --red: #F04452;
+  --red-bg: #FFF0F0;
+  --yellow: #FFC53D;
+  --yellow-bg: #FFF8E6;
+  --border: #F2F4F6;
+  --divider: #ECEEF0;
+  --indigo: #4338CA;
+  --indigo-bg: #EEF2FF;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{width:100%;height:100%;overflow:hidden;font-family:'Pretendard',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--text-primary);-webkit-font-smoothing:antialiased;touch-action:manipulation;-webkit-user-select:none;user-select:none;}
+input,textarea,select{-webkit-user-select:text;user-select:text;}
 
-    /* 헤더 */
-    .chat-header {
-      background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4338ca 100%);
-      padding: 16px 20px;
-      color: white;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-      position: relative;
-      overflow: hidden;
-      flex-shrink: 0;
-    }
-    .chat-header::before {
-      content: '';
-      position: absolute;
-      top: -50%;
-      right: -20%;
-      width: 300px;
-      height: 300px;
-      background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-      border-radius: 50%;
-    }
-    .header-content {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      position: relative;
-      z-index: 1;
-    }
-    .header-avatar {
-      width: 48px;
-      height: 48px;
-      background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
-      border-radius: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 24px;
-      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
-    }
-    .header-info h1 { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
-    .header-status {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 12px;
-      opacity: 0.85;
-      margin-top: 2px;
-    }
-    .status-dot {
-      width: 8px;
-      height: 8px;
-      background: #4ade80;
-      border-radius: 50%;
-      animation: pulse 2s infinite;
-    }
-    @keyframes pulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.7; transform: scale(0.9); }
-    }
-    .header-progress {
-      display: none;
-      align-items: center;
-      gap: 10px;
-      margin-top: 14px;
-      position: relative;
-      z-index: 1;
-    }
-    .header-progress.active { display: flex; }
-    .progress-bar {
-      flex: 1;
-      height: 6px;
-      background: rgba(255, 255, 255, 0.2);
-      border-radius: 10px;
-      overflow: hidden;
-    }
-    .progress-fill {
-      height: 100%;
-      background: linear-gradient(90deg, #fbbf24 0%, #f59e0b 100%);
-      border-radius: 10px;
-      transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-      width: 0%;
-    }
-    .progress-text { font-size: 12px; font-weight: 600; min-width: 36px; }
+.app{width:100%;height:100vh;height:100dvh;max-width:480px;margin:0 auto;display:flex;flex-direction:column;position:relative;overflow:hidden;background:var(--bg);}
 
-    /* 메시지 영역 */
-    .chat-messages {
-      flex: 1;
-      overflow-y: auto;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-    .chat-messages::-webkit-scrollbar { width: 6px; }
-    .chat-messages::-webkit-scrollbar-track { background: transparent; }
-    .chat-messages::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-    .message-wrapper {
-      display: flex;
-      gap: 10px;
-      animation: messageIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    .message-wrapper.user { flex-direction: row-reverse; }
-    @keyframes messageIn {
-      from { opacity: 0; transform: translateY(16px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    .bot-avatar {
-      width: 40px;
-      height: 40px;
-      background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
-      border-radius: 14px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 20px;
-      flex-shrink: 0;
-      box-shadow: 0 2px 8px rgba(99, 102, 241, 0.15);
-    }
-    .message-content {
-      max-width: 85%;
-      display: flex;
-      flex-direction: column;
-    }
-    .message-wrapper.user .message-content { align-items: flex-end; }
-    .section-badge {
-      font-size: 11px;
-      font-weight: 600;
-      color: #6366f1;
-      background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
-      padding: 4px 12px;
-      border-radius: 20px;
-      margin-bottom: 8px;
-      display: inline-block;
-    }
-    .message-bubble { padding: 14px 18px; border-radius: 24px; position: relative; }
-    .message-bubble.bot {
-      background: white;
-      border-radius: 24px 24px 24px 6px;
-      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
-    }
-    .message-bubble.user {
-      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-      color: white;
-      border-radius: 24px 24px 6px 24px;
-      box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
-    }
-    .message-icon { font-size: 28px; margin-bottom: 8px; }
-    .message-text { font-size: 15px; line-height: 1.6; white-space: pre-line; }
-    .message-bubble.bot .message-text { color: #1e293b; }
-    .message-time { font-size: 11px; color: #94a3b8; margin-top: 6px; }
+/* ===== Topbar ===== */
+.topbar{padding:calc(12px + var(--safe-top)) 20px 12px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;z-index:10;position:absolute;top:0;left:0;right:0;background:transparent;transition:background 0.3s;}
+.topbar.solid{background:var(--bg);}
+.topbar-back{width:40px;height:40px;display:flex;align-items:center;justify-content:center;background:none;border:none;cursor:pointer;border-radius:50%;opacity:0;pointer-events:none;transition:all 0.2s;}
+.topbar-back.visible{opacity:1;pointer-events:auto;}
+.topbar-back:active{background:rgba(0,0,0,0.05);}
+.topbar-back svg{width:24px;height:24px;color:var(--text-primary);}
+.topbar-title{font-size:17px;font-weight:600;color:var(--text-primary);opacity:0;transition:opacity 0.3s;}
+.topbar-title.visible{opacity:1;}
+.topbar-step{font-size:14px;font-weight:500;color:var(--text-tertiary);min-width:40px;text-align:right;opacity:0;transition:opacity 0.3s;}
+.topbar-step.visible{opacity:1;}
 
-    /* 타이핑 애니메이션 */
-    .typing-dots { display: flex; gap: 5px; padding: 4px 0; }
-    .typing-dots span {
-      width: 8px;
-      height: 8px;
-      background: #94a3b8;
-      border-radius: 50%;
-      animation: bounce 1.4s infinite ease-in-out both;
-    }
-    .typing-dots span:nth-child(1) { animation-delay: -0.32s; }
-    .typing-dots span:nth-child(2) { animation-delay: -0.16s; }
-    @keyframes bounce {
-      0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
-      40% { transform: scale(1.1); opacity: 1; }
-    }
+/* ===== Progress ===== */
+.progress-bar{height:3px;position:absolute;top:calc(52px + var(--safe-top));left:0;right:0;z-index:10;opacity:0;transition:opacity 0.3s;background:var(--border);}
+.progress-bar.visible{opacity:1;}
+.progress-fill{height:100%;background:var(--blue);border-radius:0 2px 2px 0;width:0%;transition:width 0.4s cubic-bezier(0.22,1,0.36,1);position:absolute;top:0;left:0;}
 
-    /* 버튼들 */
-    .start-btn {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      width: 100%;
-      margin-top: 16px;
-      padding: 14px 24px;
-      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-      color: white;
-      border: none;
-      border-radius: 16px;
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
-      font-family: inherit;
-    }
-    .start-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5); }
-    .start-btn:active { transform: translateY(0); }
-    .choice-buttons { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
-    .choice-btn {
-      padding: 10px 18px;
-      background: #f1f5f9;
-      border: 2px solid transparent;
-      border-radius: 20px;
-      font-size: 14px;
-      font-weight: 500;
-      color: #475569;
-      cursor: pointer;
-      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-      font-family: inherit;
-    }
-    .choice-btn:hover {
-      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-      color: white;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
-    }
-    .choice-btn:active { transform: translateY(0); }
+/* ===== Slides ===== */
+.slides-container{position:absolute;inset:0;overflow:hidden;}
+.slide{position:absolute;top:0;left:0;width:100%;height:100%;display:flex;flex-direction:column;overflow-y:auto;-webkit-overflow-scrolling:touch;opacity:0;transform:translateX(80px);transition:all 0.45s cubic-bezier(0.22,1,0.36,1);pointer-events:none;scrollbar-width:none;}
+.slide::-webkit-scrollbar{display:none;}
+.slide.active{opacity:1;transform:translateX(0);pointer-events:auto;}
+.slide.exit-left{opacity:0;transform:translateX(-80px);pointer-events:none;}
+.slide.exit-right{opacity:0;transform:translateX(80px);pointer-events:none;}
 
-    /* 입력 영역 */
-    .chat-input {
-      display: none;
-      background: white;
-      padding: 16px 20px;
-      border-top: 1px solid #e2e8f0;
-      box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.05);
-      flex-shrink: 0;
-    }
-    .chat-input.active { display: block; }
-    .input-wrapper { display: flex; gap: 12px; max-width: 600px; margin: 0 auto; }
-    .input-wrapper input {
-      flex: 1;
-      padding: 14px 20px;
-      border: 2px solid #e2e8f0;
-      border-radius: 24px;
-      font-size: 15px;
-      transition: all 0.25s;
-      background: #f8fafc;
-      font-family: inherit;
-    }
-    .input-wrapper input:focus {
-      outline: none;
-      border-color: #6366f1;
-      background: white;
-      box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
-    }
-    .send-btn {
-      min-width: 70px;
-      height: 50px;
-      padding: 0 16px;
-      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-      border: none;
-      border-radius: 25px;
-      color: white;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      transition: all 0.25s;
-      box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
-      flex-shrink: 0;
-      font-size: 15px;
-      font-weight: 600;
-      font-family: inherit;
-    }
-    .send-btn .send-text { display: inline; }
-    .send-btn:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; }
-    .send-btn:not(:disabled):hover { transform: scale(1.05); box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5); }
-    .send-btn:not(:disabled):active { transform: scale(0.98); }
+/* ===== Intro Slides (White bg + Video) ===== */
+.intro-slide{background:var(--bg);display:flex;flex-direction:column;}
+.intro-text-area{padding:calc(60px + var(--safe-top)) 28px 0;flex-shrink:0;}
+.intro-title{font-size:26px;font-weight:800;line-height:1.4;letter-spacing:-0.8px;color:var(--text-primary);margin-bottom:12px;white-space:pre-line;}
+.intro-title em{font-style:normal;color:var(--blue);}
+.intro-title .red{color:var(--red);}
+.intro-sub{font-size:15px;line-height:1.6;color:var(--text-secondary);white-space:pre-line;}
+.intro-sub strong{color:var(--text-primary);font-weight:600;}
 
-    /* 결과 카드 */
-    .result-card {
-      background: white;
-      border-radius: 28px;
-      padding: 28px;
-      margin: 8px 0;
-      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-      animation: resultIn 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    @keyframes resultIn {
-      from { opacity: 0; transform: scale(0.95) translateY(20px); }
-      to { opacity: 1; transform: scale(1) translateY(0); }
-    }
-    .result-header { text-align: center; margin-bottom: 28px; }
-    .result-badge {
-      display: inline-block;
-      padding: 6px 16px;
-      background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
-      color: white;
-      font-size: 12px;
-      font-weight: 600;
-      border-radius: 20px;
-      margin-bottom: 14px;
-    }
-    .result-header h2 { font-size: 22px; font-weight: 700; color: #1e293b; margin-bottom: 4px; }
-    .result-header p { font-size: 14px; color: #64748b; }
+/* Intro2 centered layout */
+.intro-slide-2{justify-content:center;align-items:center;padding-bottom:calc(80px + var(--safe-bottom));}
+.intro2-centered{display:flex;flex-direction:column;align-items:center;text-align:center;padding:0 28px;width:100%;max-width:400px;}
+.intro2-centered .intro-title{font-size:26px;margin-bottom:16px;}
 
-    .result-unavailable { text-align: center; padding: 40px 20px; }
-    .unavailable-icon { font-size: 56px; margin-bottom: 16px; }
-    .result-unavailable h3 { font-size: 20px; color: #ef4444; margin-bottom: 8px; }
-    .result-unavailable p { color: #64748b; font-size: 14px; }
+/* Video container */
+.intro-video-area{display:flex;align-items:center;justify-content:center;padding:0;min-height:0;}
+.intro-slide:not(.intro-slide-2) .intro-video-area{flex:1;padding:24px 28px 0;}
+.intro-slide-2 .intro-video-area{margin-top:24px;width:100%;}
+.video-frame{width:100%;max-width:280px;aspect-ratio:1/1;border-radius:20px;overflow:hidden;border:1.5px solid var(--border);background:#F7F8FA;position:relative;margin:0 auto;}
+.video-frame video{width:100%;height:100%;object-fit:cover;}
 
-    .result-gauge { display: flex; flex-direction: column; align-items: center; margin-bottom: 28px; position: relative; }
-    .result-gauge svg { width: 140px; height: 140px; transform: rotate(-90deg); }
-    .gauge-bg { fill: none; stroke: #e2e8f0; stroke-width: 10; }
-    .gauge-fill {
-      fill: none;
-      stroke: url(#gaugeGradient);
-      stroke-width: 10;
-      stroke-linecap: round;
-      transition: stroke-dasharray 1s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    .gauge-text {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -60%);
-      display: flex;
-      align-items: baseline;
-    }
-    .gauge-value { font-size: 42px; font-weight: 800; color: #1e293b; }
-    .gauge-unit { font-size: 20px; font-weight: 600; color: #64748b; margin-left: 2px; }
-    .gauge-label { font-size: 14px; font-weight: 600; color: #6366f1; margin-top: 8px; }
+/* Intro2 stats */
+.intro2-stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px;width:100%;}
+.intro2-stat-chip{display:flex;align-items:center;gap:6px;padding:10px 14px;background:var(--bg-secondary);border-radius:12px;border:1px solid var(--border);justify-content:center;}
+.intro2-stat-chip .val{font-size:17px;font-weight:800;color:var(--blue);}
+.intro2-stat-chip .lbl{font-size:12px;color:var(--text-tertiary);}
+.intro2-trust{font-size:14px;color:var(--text-secondary);margin-top:20px;display:flex;align-items:center;gap:6px;font-weight:500;}
 
-    .result-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 24px; }
-    .stat-card {
-      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-      padding: 20px;
-      border-radius: 20px;
-      text-align: center;
-    }
-    .stat-icon { font-size: 28px; margin-bottom: 8px; }
-    .stat-label { font-size: 12px; color: #64748b; margin-bottom: 4px; }
-    .stat-value { font-size: 20px; font-weight: 700; color: #1e293b; }
+/* Swipe hint */
+.swipe-hint{position:absolute;bottom:calc(80px + var(--safe-bottom));left:0;right:0;text-align:center;font-size:12px;color:var(--text-tertiary);opacity:0.6;display:flex;align-items:center;justify-content:center;gap:4px;z-index:5;}
+.swipe-hint svg{animation:bounceR 1.5s ease-in-out infinite;}
+@keyframes bounceR{0%,100%{transform:translateX(0);}50%{transform:translateX(4px);}}
 
-    /* 추천 상품 섹션 */
-    .recommend-section {
-      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-      border-radius: 20px;
-      padding: 20px;
-      margin-bottom: 20px;
-    }
-    .recommend-section h4 {
-      font-size: 15px;
-      font-weight: 700;
-      color: #92400e;
-      margin-bottom: 14px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .recommend-list { display: flex; flex-direction: column; gap: 14px; }
-    .recommend-item {
-      background: white;
-      border-radius: 16px;
-      padding: 0;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-      overflow: hidden;
-      border: 1px solid #e2e8f0;
-    }
-    .recommend-item-header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 14px 16px;
-      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-      border-bottom: 1px solid #e2e8f0;
-    }
-    .recommend-item-number {
-      width: 28px;
-      height: 28px;
-      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-      color: white;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 700;
-      font-size: 14px;
-      flex-shrink: 0;
-    }
-    .recommend-item-title-wrap { flex: 1; }
-    .recommend-item-title {
-      font-size: 15px;
-      font-weight: 700;
-      color: #1e293b;
-      margin-bottom: 2px;
-    }
-    .recommend-item-org {
-      font-size: 11px;
-      padding: 2px 8px;
-      background: #64748b;
-      color: white;
-      border-radius: 4px;
-      font-weight: 600;
-      display: inline-block;
-    }
-    .recommend-item-body { padding: 14px 16px; }
-    .recommend-info-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 8px 0;
-      border-bottom: 1px dashed #e2e8f0;
-    }
-    .recommend-info-row:last-of-type { border-bottom: none; }
-    .recommend-info-label { font-size: 13px; color: #64748b; font-weight: 500; }
-    .recommend-info-value { font-size: 14px; font-weight: 600; color: #1e293b; text-align: right; }
-    .recommend-info-value.highlight { color: #6366f1; font-weight: 700; }
-    .recommend-estimate {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      margin-top: 12px;
-      padding: 12px 14px;
-      background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
-      border-radius: 10px;
-      font-size: 13px;
-      color: #4338ca;
-    }
-    .recommend-estimate-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .recommend-estimate strong { font-weight: 700; }
-    
-    /* 기업 분류 배지 */
-    .biz-category-badge {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      padding: 12px 20px;
-      border-radius: 12px;
-      margin-bottom: 16px;
-      color: white;
-      flex-wrap: wrap;
-    }
-    .biz-category-icon { font-size: 20px; }
-    .biz-category-text { font-weight: 700; font-size: 16px; }
-    .biz-category-sub { font-size: 12px; opacity: 0.9; }
+/* Auto-advance timer bar */
+.auto-timer{position:absolute;bottom:calc(72px + var(--safe-bottom));left:28px;right:28px;height:3px;background:var(--border);border-radius:2px;overflow:hidden;z-index:5;}
+.auto-timer-fill{height:100%;background:var(--blue);width:0%;transition:width 0.1s linear;}
 
-    /* 인사이트 */
-    .result-insights {
-      background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
-      padding: 20px;
-      border-radius: 20px;
-      margin-bottom: 20px;
-    }
-    .result-insights h4 { font-size: 15px; font-weight: 600; color: #4338ca; margin-bottom: 14px; }
-    .insight-list { display: flex; flex-direction: column; gap: 10px; }
-    .insight-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 14px;
-      background: white;
-      border-radius: 12px;
-      font-size: 14px;
-      color: #475569;
-    }
-    .insight-item.positive { background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); color: #047857; }
-    .insight-item.warning { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); color: #92400e; }
-    .insight-icon { font-size: 16px; }
+/* ===== Floating Bottom Bar (항상 고정) ===== */
+.floating-bar{position:absolute;bottom:0;left:0;right:0;z-index:20;padding:12px 24px calc(14px + var(--safe-bottom));background:linear-gradient(transparent,var(--bg) 20%);pointer-events:none;}
+.floating-bar>*{pointer-events:auto;}
+.btn-primary{width:100%;padding:18px 24px;font-size:17px;font-weight:700;font-family:inherit;color:white;border:none;border-radius:16px;cursor:pointer;transition:all 0.2s;background:var(--blue);min-height:56px;display:flex;align-items:center;justify-content:center;gap:8px;position:relative;overflow:hidden;}
+.btn-primary:active{transform:scale(0.98);background:var(--blue-dark);}
+.btn-primary:disabled{background:#DCDEE3;color:#B0B8C1;cursor:not-allowed;transform:none;animation:none !important;}
+/* Bounce jump CTA */
+.btn-primary.bounce{animation:ctaBounce 2s cubic-bezier(0.28,0.84,0.42,1) infinite;box-shadow:0 4px 20px rgba(67,56,202,0.4);}
+.btn-primary.bounce::after{content:'';position:absolute;top:0;left:-100%;width:60%;height:100%;background:linear-gradient(105deg,transparent 30%,rgba(255,255,255,0.25) 50%,transparent 70%);animation:ctaShine 2s ease-in-out infinite;pointer-events:none;}
+@keyframes ctaBounce{
+  0%,100%{transform:translateY(0) scale(1);}
+  15%{transform:translateY(-12px) scale(1.03);}
+  30%{transform:translateY(0) scale(0.98);}
+  42%{transform:translateY(-6px) scale(1.01);}
+  55%{transform:translateY(0) scale(1);}
+}
+@keyframes ctaShine{
+  0%{left:-100%;}
+  40%{left:120%;}
+  100%{left:120%;}
+}
+.btn-primary.green{background:var(--green);}
+.btn-primary.indigo{background:var(--indigo);}
+.btn-secondary{width:100%;padding:12px;font-size:14px;font-weight:500;font-family:inherit;color:var(--text-tertiary);border:none;background:none;cursor:pointer;margin-top:6px;border-radius:12px;text-align:center;}
+.btn-secondary:active{background:var(--bg-secondary);}
 
-    /* 상환 계산기 */
-    .calculator-section {
-      background: white;
-      border: 2px solid #e2e8f0;
-      border-radius: 20px;
-      margin-bottom: 20px;
-      overflow: hidden;
-    }
-    .calculator-header {
-      padding: 16px 20px;
-      background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
-      color: white;
-      cursor: pointer;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-weight: 600;
-      font-size: 15px;
-    }
-    .calculator-header:hover { opacity: 0.95; }
-    .calculator-arrow {
-      transition: transform 0.3s;
-      font-size: 12px;
-    }
-    .calculator-arrow.open { transform: rotate(180deg); }
-    .calculator-body {
-      display: none;
-      padding: 20px;
-      animation: slideDown 0.3s ease;
-    }
-    .calculator-body.open { display: block; }
-    @keyframes slideDown {
-      from { opacity: 0; transform: translateY(-10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    .calc-row { margin-bottom: 16px; }
-    .calc-label {
-      font-size: 13px;
-      font-weight: 600;
-      color: #475569;
-      margin-bottom: 6px;
-      display: block;
-    }
-    .calc-input {
-      width: 100%;
-      padding: 12px 16px;
-      border: 2px solid #e2e8f0;
-      border-radius: 12px;
-      font-size: 14px;
-      font-family: inherit;
-      transition: all 0.2s;
-    }
-    .calc-input:focus {
-      outline: none;
-      border-color: #6366f1;
-      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-    }
-    .calc-select {
-      width: 100%;
-      padding: 12px 16px;
-      border: 2px solid #e2e8f0;
-      border-radius: 12px;
-      font-size: 14px;
-      font-family: inherit;
-      background: white;
-      cursor: pointer;
-    }
-    .calc-row-inline {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
-    .calc-btn {
-      width: 100%;
-      padding: 14px;
-      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-      color: white;
-      border: none;
-      border-radius: 12px;
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
-      font-family: inherit;
-      transition: all 0.2s;
-      margin-top: 8px;
-    }
-    .calc-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3); }
-    .calc-result {
-      margin-top: 20px;
-      padding: 20px;
-      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-      border-radius: 16px;
-      display: none;
-    }
-    .calc-result.show { display: block; animation: fadeIn 0.3s; }
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-    .calc-result-summary {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-bottom: 16px;
-    }
-    .calc-summary-item { text-align: center; }
-    .calc-summary-label { font-size: 12px; color: #64748b; margin-bottom: 4px; }
-    .calc-summary-value { font-size: 18px; font-weight: 700; color: #1e293b; }
-    .calc-summary-value.primary { color: #6366f1; }
-    .schedule-table-wrapper {
-      max-height: 300px;
-      overflow-y: auto;
-      border-radius: 12px;
-      border: 1px solid #e2e8f0;
-    }
-    .schedule-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 12px;
-    }
-    .schedule-table th {
-      background: #1e1b4b;
-      color: white;
-      padding: 10px 8px;
-      font-weight: 600;
-      position: sticky;
-      top: 0;
-    }
-    .schedule-table td {
-      padding: 10px 8px;
-      text-align: center;
-      border-bottom: 1px solid #e2e8f0;
-    }
-    .schedule-table tr:nth-child(even) { background: #f8fafc; }
-    .schedule-table tr:hover { background: #eef2ff; }
+/* ===== Question Slides ===== */
+.question-slide{background:var(--bg);padding-top:calc(60px + var(--safe-top));}
+.question-content{padding:20px 24px 0;flex:1;}
+.question-label{font-size:13px;font-weight:600;color:var(--blue);margin-bottom:12px;}
+.question-title{font-size:24px;font-weight:700;line-height:1.4;color:var(--text-primary);margin-bottom:8px;letter-spacing:-0.5px;white-space:pre-line;}
+.question-hint{font-size:14px;color:var(--text-tertiary);line-height:1.5;margin-bottom:28px;white-space:pre-line;}
+.question-hint strong{color:var(--text-secondary);font-weight:500;}
 
-    /* 상세정보 */
-    .result-details { margin-bottom: 16px; }
-    .result-details summary {
-      padding: 14px 18px;
-      background: #f8fafc;
-      border-radius: 14px;
-      font-size: 14px;
-      font-weight: 600;
-      color: #475569;
-      cursor: pointer;
-      list-style: none;
-    }
-    .result-details summary::-webkit-details-marker { display: none; }
-    .details-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      padding: 16px;
-      margin-top: 10px;
-      background: #f8fafc;
-      border-radius: 14px;
-    }
-    .details-grid > div { display: flex; flex-direction: column; gap: 2px; }
-    .details-grid span { font-size: 11px; color: #94a3b8; }
-    .details-grid strong { font-size: 13px; color: #1e293b; }
+.choices{display:flex;flex-direction:column;gap:10px;padding-bottom:20px;}
+.choice-item{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;background:var(--bg-card);border:1.5px solid var(--border);border-radius:16px;font-size:16px;font-weight:500;color:var(--text-primary);cursor:pointer;transition:all 0.2s;font-family:inherit;min-height:56px;text-align:left;width:100%;}
+.choice-item:active{transform:scale(0.98);background:var(--bg-secondary);}
+.choice-item.selected{border-color:var(--blue);background:var(--blue-bg);color:var(--blue);}
+.choice-item:disabled{opacity:0.4;cursor:not-allowed;transform:none;}
+.choice-item .ck{width:22px;height:22px;border-radius:50%;border:2px solid var(--divider);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all 0.2s;}
+.choice-item.selected .ck{border-color:var(--blue);background:var(--blue);}
+.choice-item.selected .ck svg{opacity:1;}
+.choice-item .ck svg{opacity:0;transition:opacity 0.2s;}
 
-    .result-notice {
-      font-size: 12px;
-      color: #94a3b8;
-      text-align: center;
-      margin-bottom: 20px;
-      line-height: 1.5;
-      padding: 16px;
-      background: #fffbeb;
-      border: 1px solid #fde68a;
-      border-radius: 12px;
-    }
+.number-input-wrapper{margin-bottom:8px;}
+.number-input{width:100%;padding:18px 20px;font-size:28px;font-weight:700;font-family:inherit;border:2px solid var(--border);border-radius:16px;background:var(--bg-card);color:var(--text-primary);transition:border-color 0.2s;outline:none;-moz-appearance:textfield;}
+.number-input::-webkit-outer-spin-button,.number-input::-webkit-inner-spin-button{-webkit-appearance:none;}
+.number-input::placeholder{color:var(--text-tertiary);font-weight:500;font-size:20px;}
+.number-input:focus{border-color:var(--blue);}
+.number-unit{font-size:14px;color:var(--text-tertiary);margin-top:8px;padding-left:4px;}
+.number-unit strong{color:var(--text-secondary);font-weight:600;}
+.tip-box{margin-top:16px;padding:16px 18px;background:linear-gradient(135deg,#EFF6FF,#DBEAFE);border-radius:14px;border:1.5px solid #93C5FD;margin-bottom:100px;}
+.tip-box-title{font-size:14px;font-weight:700;color:#1D4ED8;margin-bottom:8px;}
+.tip-box-text{font-size:13px;color:#1E40AF;line-height:1.7;}
 
-    .restart-btn {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      width: 100%;
-      padding: 16px;
-      background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
-      color: white;
-      border: none;
-      border-radius: 18px;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s;
-      box-shadow: 0 4px 16px rgba(30, 27, 75, 0.3);
-      font-family: inherit;
-    }
-    .restart-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(30, 27, 75, 0.4); }
-    .restart-btn:active { transform: translateY(0); }
+/* ===== Loading ===== */
+.loading-slide{background:var(--bg);}
+.loading-content{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;text-align:center;padding:0 32px;}
+.loading-ring{width:72px;height:72px;margin-bottom:36px;position:relative;}
+.loading-ring::after{content:'';position:absolute;inset:0;border:3px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin 0.8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.loading-title{font-size:22px;font-weight:700;color:var(--text-primary);margin-bottom:8px;}
+.loading-desc{font-size:14px;color:var(--text-tertiary);line-height:1.5;}
+.loading-steps{margin-top:36px;display:flex;flex-direction:column;gap:14px;width:100%;max-width:260px;}
+.loading-step{display:flex;align-items:center;gap:14px;font-size:15px;color:var(--text-tertiary);opacity:0;transform:translateY(10px);transition:all 0.5s cubic-bezier(0.22,1,0.36,1);}
+.loading-step.visible{opacity:1;transform:translateY(0);}
+.loading-step.done{color:var(--green);}
+.loading-step-icon{font-size:20px;flex-shrink:0;}
 
-    /* 통계 배너 */
-    .stats-banner {
-      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-      border-radius: 16px;
-      padding: 16px;
-      margin-bottom: 20px;
-      color: white;
-    }
-    .stats-banner-title {
-      font-size: 12px;
-      opacity: 0.7;
-      margin-bottom: 10px;
-    }
-    .stats-banner-items { display: flex; justify-content: space-around; }
-    .stats-banner-item { text-align: center; }
-    .stats-banner-value { font-size: 20px; font-weight: 800; color: #fbbf24; }
-    .stats-banner-label { font-size: 11px; opacity: 0.7; margin-top: 2px; }
+/* ===== Result - Notion-inspired clean design ===== */
+.result-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:var(--bg);z-index:1000;display:none;flex-direction:column;max-width:480px;margin:0 auto;}
+.result-overlay.show{display:flex;}
+.result-scroll{flex:1;overflow-y:auto;scrollbar-width:none;}
+.result-scroll::-webkit-scrollbar{display:none;}
+.result-top{padding:calc(12px + var(--safe-top)) 20px 12px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--bg);z-index:10;border-bottom:1px solid var(--divider);}
+.result-close{width:40px;height:40px;display:flex;align-items:center;justify-content:center;background:none;border:none;cursor:pointer;border-radius:50%;}
+.result-close:active{background:var(--bg-secondary);}
+.result-close svg{width:24px;height:24px;color:var(--text-primary);}
+.result-top-title{font-size:17px;font-weight:600;}
 
-    /* 반응형 */
-    /* 모바일 반응형 */
-    @media (max-width: 480px) {
-      .message-wrapper { gap: 8px; }
-      .bot-avatar { width: 32px; height: 32px; font-size: 16px; border-radius: 10px; }
-      .message-content { max-width: 100%; }
-      .message-bubble { padding: 12px 14px; font-size: 15px; border-radius: 18px; }
-      .result-card { padding: 16px 10px; margin: 0; border-radius: 18px; }
-      .gauge-value { font-size: 36px; }
-      .stat-value { font-size: 17px; }
-      .stat-card { padding: 14px 8px; border-radius: 12px; }
-      .chat-header { padding: 12px 10px; }
-      .header-avatar { width: 38px; height: 38px; font-size: 18px; border-radius: 12px; }
-      .header-info h1 { font-size: 15px; }
-      .header-info p { font-size: 11px; }
-      .chat-messages { padding: 8px 6px; gap: 12px; -webkit-overflow-scrolling: touch; }
-      .chat-input { padding: 8px 6px; padding-bottom: calc(8px + var(--safe-bottom)); }
-      .input-wrapper { max-width: 100%; gap: 8px; }
-      .input-wrapper input { font-size: 16px !important; padding: 14px 16px; border-radius: 22px; flex: 1; min-width: 0; }
-      .send-btn { min-width: 64px; height: 48px; padding: 0 14px; font-size: 15px; border-radius: 24px; }
-      .choice-btn { padding: 10px 14px; font-size: 14px; min-height: 44px; border-radius: 16px; }
-      .choice-buttons { gap: 6px; }
-      .start-btn { padding: 14px 18px; font-size: 15px; min-height: 48px; border-radius: 14px; }
-      .section-badge { font-size: 10px; padding: 3px 10px; }
-      .recommend-section { padding: 0; }
-      .recommend-estimate { gap: 6px; padding: 8px; border-radius: 10px; }
-      .recommend-estimate-row { flex-direction: column; gap: 3px; align-items: flex-start; font-size: 11px; }
-      .recommend-item { margin-bottom: 8px; border-radius: 14px; }
-      .recommend-item-header { padding: 10px; }
-      .recommend-item-number { width: 24px; height: 24px; font-size: 12px; }
-      .recommend-item-title { font-size: 14px; }
-      .recommend-item-org { font-size: 10px; }
-      .recommend-item-body { padding: 10px; }
-      .recommend-info-label { font-size: 11px; }
-      .recommend-info-value { font-size: 12px; }
-      .cta-main-btn { font-size: 15px; padding: 14px 12px; min-height: 50px; border-radius: 14px; }
-      .cta-sub-btn { font-size: 14px; padding: 12px 12px; border-radius: 12px; }
-      .cta-section { padding: 16px 14px; margin: 16px 0; }
-      .cta-notice { padding: 10px; gap: 10px; }
-      .cta-notice-icon { font-size: 26px; }
-      .cta-notice-text { font-size: 13px; }
-      .cta-benefits { padding: 10px; gap: 6px; }
-      .cta-benefit-item { font-size: 12px; }
-      .cta-item-btn { padding: 10px 12px; min-height: 42px; font-size: 13px; border-radius: 8px; }
-      .calc-input, .calc-select { font-size: 16px !important; padding: 10px 12px; }
-      .calc-row-inline { grid-template-columns: 1fr; }
-      .biz-category-badge { padding: 8px 12px; font-size: 13px; border-radius: 8px; }
-      .biz-category-sub { font-size: 10px; }
-      .stats-banner { padding: 10px; border-radius: 12px; }
-      .stats-banner-value { font-size: 16px; }
-      .stats-banner-label { font-size: 9px; }
-      .result-stats { gap: 6px; }
-      .result-header { margin-bottom: 20px; }
-      .result-header h2 { font-size: 18px; }
-      .result-badge { font-size: 10px; padding: 5px 12px; }
-      .gauge-label { font-size: 13px; }
-      .insight-list { gap: 4px; }
-      .insight-item { padding: 6px 8px; font-size: 12px; border-radius: 8px; }
-      .insight-icon { font-size: 14px; }
-      .result-details summary { padding: 10px 12px; font-size: 12px; }
-      .details-grid { padding: 10px; font-size: 12px; }
-      .result-notice { font-size: 10px; padding: 10px; }
-      .restart-btn { padding: 14px 20px; font-size: 14px; }
-    }
-    
-    /* 아주 작은 화면 */
-    @media (max-width: 360px) {
-      .chat-messages { padding: 6px 4px; gap: 10px; }
-      .chat-input { padding: 6px 4px; }
-      .message-wrapper { gap: 6px; }
-      .bot-avatar { width: 28px; height: 28px; font-size: 14px; }
-      .message-bubble { padding: 10px 12px; font-size: 14px; }
-      .result-card { padding: 14px 8px; }
-      .gauge-value { font-size: 32px; }
-      .stat-value { font-size: 15px; }
-      .cta-main-btn { font-size: 14px; padding: 12px 10px; }
-      .header-info h1 { font-size: 14px; }
-      .input-wrapper input { padding: 12px 14px; }
-      .send-btn { min-width: 58px; height: 44px; padding: 0 12px; font-size: 14px; }
-    }
+.result-content{padding:0 24px 120px;}
 
-    .svg-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
+/* Section divider */
+.r-section{padding:24px 0 0;}
+.r-section+.r-section{border-top:1px solid var(--divider);}
+.r-section-title{font-size:13px;font-weight:600;color:var(--text-tertiary);letter-spacing:0.5px;text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+.r-section-title .ico{font-size:16px;}
 
-    /* ============ 스크롤 페이드인 애니메이션 ============ */
-    .fade-in-section {
-      opacity: 0;
-      transform: translateY(30px);
-      transition: opacity 0.6s ease-out, transform 0.6s ease-out;
-    }
-    .fade-in-section.visible {
-      opacity: 1;
-      transform: translateY(0);
-    }
-    .fade-in-section:nth-child(1) { transition-delay: 0s; }
-    .fade-in-section:nth-child(2) { transition-delay: 0.1s; }
-    .fade-in-section:nth-child(3) { transition-delay: 0.15s; }
-    .fade-in-section:nth-child(4) { transition-delay: 0.2s; }
-    .fade-in-section:nth-child(5) { transition-delay: 0.25s; }
-    .fade-in-section:nth-child(6) { transition-delay: 0.3s; }
-    .fade-in-section:nth-child(7) { transition-delay: 0.35s; }
-    
-    /* 초기 로드 시 첫 번째 요소들은 바로 보이게 */
-    .result-card .fade-in-section.instant {
-      opacity: 1;
-      transform: translateY(0);
-      transition: none;
-    }
+/* Result header - removed, merged into prob-hero-section */
 
-    /* ============ 분석하기 버튼 스타일 ============ */
-    .analysis-btn {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      width: 100%;
-      padding: 18px 20px;
-      margin-top: 16px;
-      background: linear-gradient(135deg, #059669 0%, #10b981 50%, #34d399 100%);
-      color: white;
-      font-size: 16px;
-      font-weight: 700;
-      border: none;
-      border-radius: 16px;
-      cursor: pointer;
-      box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4);
-      transition: all 0.2s ease;
-      position: relative;
-      overflow: hidden;
-      font-family: inherit;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .analysis-btn::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(120deg, transparent, rgba(255,255,255,0.3), transparent);
-      animation: analysis-shine 2s infinite;
-    }
-    @keyframes analysis-shine {
-      0% { left: -100%; }
-      100% { left: 100%; }
-    }
-    .analysis-btn:active {
-      transform: scale(0.98);
-      box-shadow: 0 4px 16px rgba(16, 185, 129, 0.35);
-    }
-    @media (max-width: 480px) {
-      .analysis-btn { font-size: 15px; padding: 16px 16px; }
-    }
+/* Biz category */
+.r-biz{display:flex;align-items:center;gap:10px;padding:14px 18px;border-radius:14px;color:white;font-size:15px;font-weight:600;margin:20px 0 4px;}
+.r-biz-desc{font-size:12px;color:var(--text-tertiary);margin-bottom:0;line-height:1.5;padding:0 4px;}
 
-    /* ============ CTA 버튼 스타일 ============ */
-    .cta-section {
-      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-      border: 2px solid #bae6fd;
-      border-radius: 20px;
-      padding: 24px 20px;
-      margin: 20px 0;
-    }
-    .cta-notice {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      margin-bottom: 20px;
-      padding: 14px;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-    }
-    .cta-notice-icon {
-      font-size: 32px;
-      flex-shrink: 0;
-    }
-    .cta-notice-text {
-      font-size: 15px;
-      color: #0369a1;
-      line-height: 1.5;
-    }
-    .cta-buttons {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-    .cta-main-btn {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      width: 100%;
-      padding: 18px 24px;
-      margin: 16px 0;
-      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
-      color: white;
-      font-size: 18px;
-      font-weight: 700;
-      border: none;
-      border-radius: 16px;
-      cursor: pointer;
-      box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4);
-      transition: all 0.3s ease;
-      position: relative;
-      overflow: hidden;
-    }
-    .cta-main-btn::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(120deg, transparent, rgba(255,255,255,0.3), transparent);
-      animation: cta-shine 2s infinite;
-    }
-    @keyframes cta-shine {
-      0% { left: -100%; }
-      100% { left: 100%; }
-    }
-    .cta-main-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 12px 32px rgba(99, 102, 241, 0.5);
-    }
-    .cta-main-btn:active {
-      transform: translateY(0);
-    }
+/* Hero probability - celebration section */
+.prob-hero-section{position:relative;overflow:hidden;background:linear-gradient(180deg,#EEF2FF 0%,#E0E7FF 40%,#C7D2FE 100%);margin:0 -24px;padding:40px 24px 32px;border-bottom:2px solid #A5B4FC;}
+.prob-confetti-wrap{position:absolute;inset:0;overflow:hidden;pointer-events:none;}
+.confetti{position:absolute;width:8px;height:8px;border-radius:2px;opacity:0;animation:confettiFall 3s ease-in-out infinite;}
+.c1{background:#3B82F6;left:8%;top:-10%;animation-delay:0s;width:6px;height:12px;transform:rotate(15deg);}
+.c2{background:#8B5CF6;left:20%;top:-10%;animation-delay:0.3s;width:10px;height:6px;transform:rotate(-25deg);}
+.c3{background:#EC4899;left:35%;top:-10%;animation-delay:0.6s;width:5px;height:10px;transform:rotate(45deg);}
+.c4{background:#F59E0B;left:50%;top:-10%;animation-delay:0.15s;width:8px;height:5px;transform:rotate(-15deg);}
+.c5{background:#10B981;left:65%;top:-10%;animation-delay:0.45s;width:6px;height:9px;transform:rotate(30deg);}
+.c6{background:#6366F1;left:78%;top:-10%;animation-delay:0.75s;width:9px;height:6px;transform:rotate(-40deg);}
+.c7{background:#F43F5E;left:90%;top:-10%;animation-delay:0.2s;width:7px;height:11px;transform:rotate(20deg);}
+.c8{background:#0EA5E9;left:14%;top:-10%;animation-delay:0.55s;width:10px;height:5px;transform:rotate(-30deg);}
+.c9{background:#A855F7;left:42%;top:-10%;animation-delay:0.85s;width:5px;height:8px;transform:rotate(55deg);}
+.c10{background:#F97316;left:58%;top:-10%;animation-delay:0.35s;width:8px;height:6px;transform:rotate(-10deg);}
+.c11{background:#14B8A6;left:72%;top:-10%;animation-delay:0.65s;width:6px;height:10px;transform:rotate(35deg);}
+.c12{background:#E879F9;left:85%;top:-10%;animation-delay:0.1s;width:9px;height:5px;transform:rotate(-50deg);}
+@keyframes confettiFall{
+  0%{opacity:0;transform:translateY(0) rotate(0deg) scale(0.8);}
+  10%{opacity:1;}
+  90%{opacity:0.8;}
+  100%{opacity:0;transform:translateY(420px) rotate(720deg) scale(0.3);}
+}
+.prob-hero{display:flex;flex-direction:column;align-items:center;text-align:center;position:relative;z-index:1;}
+.prob-hero-badge-row{margin-bottom:20px;}
+.prob-hero-badge{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:white;color:var(--green);font-size:13px;font-weight:700;border-radius:20px;box-shadow:0 2px 12px rgba(0,0,0,0.08);}
+.prob-hero-label{font-size:18px;font-weight:700;color:#4338CA;margin-bottom:16px;letter-spacing:-0.3px;}
+.prob-hero-num{display:flex;align-items:baseline;justify-content:center;position:relative;}
+.prob-hero-value{font-size:96px;font-weight:900;letter-spacing:-5px;line-height:1;background:linear-gradient(135deg,#3182F6 0%,#4F46E5 40%,#7C3AED 70%,#A855F7 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;filter:drop-shadow(0 6px 12px rgba(79,70,229,0.3));position:relative;}
+.prob-hero-value::after{content:attr(data-val);position:absolute;top:4px;left:4px;font-size:96px;font-weight:900;letter-spacing:-5px;line-height:1;background:linear-gradient(135deg,rgba(79,70,229,0.06),rgba(168,85,247,0.04));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;z-index:-1;}
+.prob-hero-unit{font-size:36px;font-weight:800;background:linear-gradient(135deg,#6366F1,#A855F7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-left:2px;line-height:1;}
+.prob-hero-bar{width:200px;height:6px;background:rgba(255,255,255,0.6);border-radius:3px;margin-top:20px;overflow:hidden;box-shadow:inset 0 1px 2px rgba(0,0,0,0.06);}
+.prob-hero-bar-fill{height:100%;background:linear-gradient(90deg,#3182F6,#7C3AED);border-radius:3px;width:0%;transition:width 1.5s cubic-bezier(0.22,1,0.36,1);}
+.prob-hero-status{font-size:17px;font-weight:700;color:#4338CA;margin-top:18px;}
+.prob-hero-desc{font-size:13px;color:#6366F1;margin-top:8px;line-height:1.6;max-width:300px;opacity:0.8;}
 
-    .cta-item-btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      padding: 10px 16px;
-      margin-top: 0;
-      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-      color: white;
-      font-size: 14px;
-      font-weight: 600;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      width: 100%;
-      transition: all 0.25s ease;
-      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
-    }
-    .cta-item-btn:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
-    }
-    
-    .cta-sub-btn {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      width: 100%;
-      padding: 16px 24px;
-      background: linear-gradient(135deg, #059669 0%, #10b981 50%, #34d399 100%);
-      color: white;
-      font-size: 16px;
-      font-weight: 700;
-      border: none;
-      border-radius: 14px;
-      cursor: pointer;
-      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35);
-      transition: all 0.3s ease;
-      position: relative;
-      overflow: hidden;
-    }
-    .cta-sub-btn::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(120deg, transparent, rgba(255,255,255,0.3), transparent);
-      animation: cta-shine 2.5s infinite;
-    }
-    .cta-sub-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 28px rgba(16, 185, 129, 0.45);
-    }
-    .cta-sub-btn:active {
-      transform: translateY(0);
-    }
-    
-    .cta-benefits {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      margin-top: 16px;
-      padding: 14px;
-      background: white;
-      border-radius: 12px;
-    }
-    .cta-benefit-item {
-      font-size: 13px;
-      color: #0369a1;
-      font-weight: 500;
-      padding-left: 4px;
-    }
+/* Stats row */
+.r-stats{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:4px;}
+.r-stat-item{padding:20px 16px;text-align:center;position:relative;}
+.r-stat-item+.r-stat-item{border-left:1px solid var(--border);}
+.r-stat-label{font-size:12px;color:var(--text-tertiary);margin-bottom:6px;}
+.r-stat-value{font-size:22px;font-weight:800;color:var(--text-primary);}
+.r-stat-desc{font-size:11px;color:var(--text-tertiary);margin-top:4px;}
+.r-explain{font-size:12px;color:var(--text-tertiary);line-height:1.6;padding:8px 4px 0;margin-bottom:0;}
 
-    /* ============ 모달 스타일 ============ */
-    .modal-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100vh;
-      height: 100dvh;
-      display: none;
-      justify-content: center;
-      align-items: flex-end;
-      background: rgba(0, 0, 0, 0.6);
-      backdrop-filter: blur(4px);
-      -webkit-backdrop-filter: blur(4px);
-      z-index: 9999;
-      padding: 0;
-    }
-    .modal-overlay.show {
-      display: flex;
-    }
-    .modal-content {
-      width: 100%;
-      max-width: 500px;
-      background: white;
-      border-radius: 24px 24px 0 0;
-      padding: 28px 24px;
-      padding-bottom: calc(28px + var(--safe-bottom));
-      position: relative;
-      animation: modalSlideUp 0.3s ease;
-      max-height: 90vh;
-      max-height: 90dvh;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-    }
-    .modal-content::before {
-      content: '';
-      position: absolute;
-      top: 10px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 40px;
-      height: 4px;
-      background: #d1d5db;
-      border-radius: 2px;
-    }
-    @keyframes modalSlideUp {
-      from { opacity: 0; transform: translateY(100%); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    @media (min-width: 600px) {
-      .modal-overlay { align-items: center; padding: 20px; }
-      .modal-content { border-radius: 24px; animation: modalIn 0.3s ease; }
-      .modal-content::before { display: none; }
-      @keyframes modalIn {
-        from { opacity: 0; transform: scale(0.95); }
-        to { opacity: 1; transform: scale(1); }
-      }
-    }
-    .modal-close {
-      position: absolute;
-      top: 16px;
-      right: 16px;
-      width: 36px;
-      height: 36px;
-      background: #f1f5f9;
-      border: none;
-      border-radius: 50%;
-      font-size: 22px;
-      color: #64748b;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.2s;
-    }
-    .modal-close:hover {
-      background: #e2e8f0;
-      color: #334155;
-    }
-    .modal-header {
-      text-align: center;
-      margin-bottom: 24px;
-    }
-    .modal-header h3 {
-      font-size: 22px;
-      font-weight: 700;
-      color: #1e1b4b;
-      margin-bottom: 8px;
-    }
-    .modal-header p {
-      font-size: 14px;
-      color: #64748b;
-    }
-    .modal-product-info {
-      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-      border-radius: 12px;
-      padding: 14px;
-      margin-bottom: 20px;
-      border: 1px solid #bae6fd;
-    }
-    .modal-product-name {
-      font-size: 16px;
-      font-weight: 700;
-      color: #0369a1;
-      margin-bottom: 4px;
-    }
-    .modal-product-detail {
-      font-size: 13px;
-      color: #0284c7;
-    }
-    .form-group {
-      margin-bottom: 18px;
-    }
-    .form-label {
-      display: block;
-      font-size: 14px;
-      font-weight: 600;
-      color: #374151;
-      margin-bottom: 8px;
-    }
-    .form-label .required {
-      color: #ef4444;
-      margin-left: 2px;
-    }
-    .form-input {
-      width: 100%;
-      padding: 14px 16px;
-      font-size: 16px;
-      border: 2px solid #e5e7eb;
-      border-radius: 12px;
-      outline: none;
-      transition: all 0.2s;
-    }
-    .form-input:focus {
-      border-color: #6366f1;
-      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-    }
-    .form-input::placeholder {
-      color: #9ca3af;
-    }
-    .phone-input-group {
-      display: flex;
-      gap: 8px;
-    }
-    .phone-input-group select {
-      flex: 0 0 90px;
-      padding: 14px 12px;
-      font-size: 16px;
-      border: 2px solid #e5e7eb;
-      border-radius: 12px;
-      outline: none;
-      background: white;
-      cursor: pointer;
-    }
-    .phone-input-group select:focus {
-      border-color: #6366f1;
-    }
-    .phone-input-group input {
-      flex: 1;
-      text-align: center;
-    }
-    .agreement-box {
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-      padding: 14px;
-      background: #f8fafc;
-      border-radius: 12px;
-      margin-bottom: 20px;
-    }
-    .agreement-box input[type="checkbox"] {
-      width: 20px;
-      height: 20px;
-      margin-top: 2px;
-      cursor: pointer;
-      accent-color: #6366f1;
-    }
-    .agreement-box label {
-      font-size: 14px;
-      color: #374151;
-      cursor: pointer;
-      line-height: 1.5;
-    }
-    .agreement-box .privacy-link {
-      color: #6366f1;
-      text-decoration: underline;
-      cursor: pointer;
-      font-weight: 600;
-    }
-    .submit-btn {
-      width: 100%;
-      padding: 16px;
-      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-      color: white;
-      font-size: 17px;
-      font-weight: 700;
-      border: none;
-      border-radius: 14px;
-      cursor: pointer;
-      transition: all 0.3s;
-      box-shadow: 0 6px 20px rgba(99, 102, 241, 0.35);
-    }
-    .submit-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(99, 102, 241, 0.45);
-    }
-    .submit-btn:disabled {
-      background: #cbd5e1;
-      cursor: not-allowed;
-      transform: none;
-      box-shadow: none;
-    }
-    .analysis-submit-btn {
-      background: linear-gradient(135deg, #059669 0%, #10b981 50%, #34d399 100%);
-      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35);
-    }
-    .analysis-submit-btn:active {
-      transform: scale(0.98);
-    }
+/* Insights - clean list */
+.r-insights{display:flex;flex-direction:column;gap:0;}
+.r-insight{display:flex;align-items:flex-start;gap:12px;padding:14px 0;border-bottom:1px solid var(--border);font-size:14px;line-height:1.5;color:var(--text-primary);}
+.r-insight:last-child{border-bottom:none;}
+.r-insight-icon{font-size:18px;flex-shrink:0;margin-top:1px;}
+.r-insight-text{flex:1;}
+.r-insight-text strong{font-weight:600;color:var(--blue);}
+.r-insight-sub{font-size:12px;color:var(--text-tertiary);margin-top:2px;}
 
-    /* 개인정보취급방침 모달 */
-    .privacy-modal-content {
-      max-height: 80vh;
-      overflow-y: auto;
-    }
-    .privacy-modal-content h4 {
-      font-size: 18px;
-      color: #1e1b4b;
-      margin: 20px 0 12px 0;
-    }
-    .privacy-modal-content h4:first-child {
-      margin-top: 0;
-    }
-    .privacy-modal-content p {
-      font-size: 14px;
-      color: #4b5563;
-      line-height: 1.7;
-      margin-bottom: 12px;
-    }
-    .privacy-modal-content ul {
-      margin: 8px 0 16px 20px;
-      font-size: 14px;
-      color: #4b5563;
-      line-height: 1.7;
-    }
+/* Recommend cards - clean Notion style */
+.r-rec{border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:14px;background:var(--bg);}
+.r-rec-head{display:flex;align-items:center;gap:12px;padding:16px 18px;border-bottom:1px solid var(--border);}
+.r-rec-num{min-width:26px;height:26px;background:var(--text-primary);color:white;border-radius:7px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0;}
+.r-rec-name{font-size:16px;font-weight:700;color:var(--text-primary);}
+.r-rec-org{font-size:11px;padding:2px 8px;background:var(--bg-secondary);color:var(--text-secondary);border-radius:4px;font-weight:600;display:inline-block;margin-top:2px;border:1px solid var(--border);}
+.r-rec-body{padding:0 18px;}
+.r-rec-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border);}
+.r-rec-row:last-child{border-bottom:none;}
+.r-rec-lbl{font-size:13px;color:var(--text-tertiary);}
+.r-rec-val{font-size:14px;font-weight:600;color:var(--text-primary);text-align:right;}
+.r-rec-val.hl{color:var(--blue);font-weight:700;}
+.r-rec-estimate{padding:14px 18px;background:var(--bg-secondary);border-top:1px solid var(--border);}
+.r-rec-est-row{display:flex;justify-content:space-between;font-size:13px;color:var(--text-secondary);margin-bottom:6px;}
+.r-rec-est-row strong{font-weight:700;color:var(--text-primary);}
+.r-rec-cta{display:block;width:calc(100% - 36px);margin:0 18px 16px;padding:12px;background:var(--text-primary);color:white;font-size:14px;font-weight:600;border:none;border-radius:10px;cursor:pointer;font-family:inherit;text-align:center;}
+.r-rec-cta:active{opacity:0.85;}
+.r-rec-explain{font-size:12px;color:var(--text-tertiary);line-height:1.5;padding:0 18px 14px;}
 
-    /* 성공 모달 */
-    .success-icon {
-      width: 80px;
-      height: 80px;
-      background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 20px;
-      font-size: 40px;
-      box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3);
-    }
-    .success-title {
-      font-size: 22px;
-      font-weight: 700;
-      color: #1e1b4b;
-      text-align: center;
-      margin-bottom: 12px;
-    }
-    .success-message {
-      font-size: 15px;
-      color: #64748b;
-      text-align: center;
-      line-height: 1.6;
-      margin-bottom: 24px;
-    }
-    .success-btn {
-      width: 100%;
-      padding: 16px;
-      background: #10b981;
-      color: white;
-      font-size: 16px;
-      font-weight: 600;
-      border: none;
-      border-radius: 12px;
-      cursor: pointer;
-    }
-  </style>
+/* CTA */
+.r-cta{border:1px solid var(--border);border-radius:16px;padding:24px 20px;margin-bottom:0;background:var(--bg-secondary);}
+.r-cta-notice{display:flex;align-items:flex-start;gap:12px;margin-bottom:16px;}
+.r-cta-notice-icon{font-size:24px;flex-shrink:0;}
+.r-cta-notice-text{font-size:14px;color:var(--text-primary);line-height:1.6;}
+.r-cta-benefits{display:flex;flex-direction:column;gap:6px;margin-top:14px;padding-top:14px;border-top:1px solid var(--border);}
+.r-cta-benefit{font-size:13px;color:var(--text-secondary);}
+
+/* Collapse */
+.collapse-box{border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:10px;background:var(--bg);}
+.collapse-box summary{padding:16px 20px;font-size:14px;font-weight:600;color:var(--text-primary);cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;}
+.collapse-box summary::-webkit-details-marker{display:none;}
+.collapse-box summary::after{content:'›';font-size:18px;color:var(--text-tertiary);transition:transform 0.2s;transform:rotate(90deg);}
+.collapse-box[open] summary::after{transform:rotate(270deg);}
+.collapse-box-content{padding:16px 20px;border-top:1px solid var(--border);}
+
+.input-summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.input-summary-cell{padding:10px 12px;background:var(--bg-secondary);border-radius:10px;}
+.input-summary-cell-label{font-size:11px;color:var(--text-tertiary);margin-bottom:2px;}
+.input-summary-cell-value{font-size:13px;font-weight:600;color:var(--text-primary);}
+
+.r-notice{font-size:12px;color:var(--text-tertiary);text-align:center;padding:16px 0;line-height:1.6;}
+
+.result-bottom-bar{position:absolute;bottom:0;left:0;right:0;padding:12px 24px calc(16px + var(--safe-bottom));background:var(--bg);border-top:1px solid var(--divider);z-index:10;}
+
+/* Unavailable */
+.unavailable-content{text-align:center;padding:40px 0;}
+.unavailable-icon{font-size:56px;margin-bottom:16px;}
+.unavailable-content h3{font-size:20px;font-weight:700;margin-bottom:12px;color:var(--red);}
+.unavailable-content p{font-size:14px;color:var(--text-secondary);line-height:1.7;white-space:pre-line;}
+
+/* More products popup */
+.more-products-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:3000;align-items:flex-end;justify-content:center;}
+.more-products-overlay.show{display:flex;}
+.more-products-sheet{background:white;width:100%;max-width:480px;border-radius:20px 20px 0 0;max-height:88vh;overflow-y:auto;animation:sheetUp 0.3s cubic-bezier(0.22,1,0.36,1);padding-bottom:calc(24px + var(--safe-bottom));}
+.more-products-header{position:sticky;top:0;background:white;padding:20px 24px 16px;border-bottom:1px solid var(--border);z-index:1;}
+.more-products-handle{width:36px;height:4px;background:#DDE1E6;border-radius:2px;margin:0 auto 16px;}
+.more-products-title{font-size:18px;font-weight:700;color:var(--text-primary);margin-bottom:4px;}
+.more-products-desc{font-size:13px;color:var(--text-tertiary);line-height:1.6;}
+.more-products-body{padding:16px 24px;}
+.more-products-cta-box{margin:16px 24px 0;padding:20px;background:var(--bg-secondary);border-radius:16px;border:1px solid var(--border);text-align:center;}
+.more-products-cta-text{font-size:14px;color:var(--text-primary);line-height:1.7;margin-bottom:14px;}
+.more-products-cta-text strong{color:var(--blue);font-weight:700;}
+.more-btn{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:14px;background:var(--bg-secondary);border:1.5px solid var(--border);border-radius:14px;font-size:15px;font-weight:600;color:var(--text-secondary);cursor:pointer;font-family:inherit;transition:all 0.2s;margin-top:12px;}
+.more-btn:active{background:var(--border);transform:scale(0.98);}
+
+/* ===== Modals ===== */
+.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:2000;align-items:flex-end;justify-content:center;}
+.modal-backdrop.show{display:flex;}
+.modal-sheet{background:white;width:100%;max-width:480px;border-radius:20px 20px 0 0;padding:8px 24px calc(24px + var(--safe-bottom));animation:sheetUp 0.3s cubic-bezier(0.22,1,0.36,1);max-height:90vh;overflow-y:auto;}
+@keyframes sheetUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+.modal-handle{width:36px;height:4px;background:#DDE1E6;border-radius:2px;margin:8px auto 20px;}
+.modal-title{font-size:20px;font-weight:700;margin-bottom:4px;text-align:center;}
+.modal-desc{font-size:14px;color:var(--text-secondary);text-align:center;margin-bottom:24px;}
+.form-group{margin-bottom:16px;}
+.form-label{font-size:14px;font-weight:600;margin-bottom:8px;display:block;}
+.form-label .required{color:var(--red);}
+.form-input{width:100%;padding:16px;font-size:16px;font-family:inherit;border:1.5px solid var(--border);border-radius:14px;background:var(--bg-card);transition:border-color 0.2s;outline:none;}
+.form-input:focus{border-color:var(--blue);}
+.phone-row{display:flex;gap:8px;}
+.phone-row select{padding:16px 12px;border:1.5px solid var(--border);border-radius:14px;font-size:16px;font-family:inherit;background:var(--bg-card);}
+.phone-row input{flex:1;min-width:0;}
+.agree-row{display:flex;align-items:center;gap:10px;padding:14px 16px;background:var(--bg-card);border-radius:12px;margin:16px 0;}
+.agree-row input[type="checkbox"]{width:20px;height:20px;accent-color:var(--blue);flex-shrink:0;}
+.agree-row label{font-size:14px;}
+.privacy-link{color:var(--blue);text-decoration:underline;cursor:pointer;}
+
+.success-content{text-align:center;padding:32px 0;}
+.success-icon{font-size:56px;margin-bottom:16px;}
+.success-content h3{font-size:20px;font-weight:700;margin-bottom:8px;}
+.success-content p{font-size:14px;color:var(--text-secondary);line-height:1.6;}
+
+.privacy-sheet h4{font-size:15px;font-weight:600;margin:16px 0 8px;color:var(--text-primary);}
+.privacy-sheet p,.privacy-sheet ul{font-size:13px;color:var(--text-secondary);line-height:1.6;}
+.privacy-sheet ul{padding-left:18px;}
+
+/* Animations */
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+.anim-1{opacity:0;animation:fadeUp 0.6s 0.1s forwards;}
+.anim-2{opacity:0;animation:fadeUp 0.6s 0.3s forwards;}
+.anim-3{opacity:0;animation:fadeUp 0.6s 0.5s forwards;}
+.anim-4{opacity:0;animation:fadeUp 0.6s 0.7s forwards;}
+
+/* Responsive */
+@media(max-width:380px){.intro-title{font-size:22px;}.question-title{font-size:20px;}.number-input{font-size:24px;}.gauge-value{font-size:36px;}}
+@media(min-width:600px){.modal-backdrop{align-items:center;padding:24px;}.modal-sheet{border-radius:24px;}}
+@media(min-width:900px){body{background:#F4F4F4;}.app{height:90vh;max-height:820px;margin:5vh auto;border-radius:24px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.08);}.result-overlay{border-radius:24px;overflow:hidden;}}
+</style>
 </head>
 <body>
-  <svg class="svg-defs">
-    <defs>
-      <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stop-color="#6366f1" />
-        <stop offset="100%" stop-color="#8b5cf6" />
-      </linearGradient>
-    </defs>
-  </svg>
-
-  <div class="chatbot-container">
-    <header class="chat-header">
-      <div class="header-content">
-        <div class="header-avatar">💼</div>
-        <div class="header-info">
-          <h1>정책자금 분석</h1>
-          <span class="header-status">
-            <span class="status-dot"></span>
-            응답 가능
-          </span>
-        </div>
-      </div>
-      <div class="header-progress" id="headerProgress">
-        <div class="progress-bar">
-          <div class="progress-fill" id="progressFill"></div>
-        </div>
-        <span class="progress-text" id="progressText">0%</span>
-      </div>
-    </header>
-
-    <main class="chat-messages" id="chatMessages"></main>
-
-    <footer class="chat-input" id="chatInput">
-      <div class="input-wrapper">
-        <input type="text" id="userInput" placeholder="여기에 입력하세요" autocomplete="off">
-        <button class="send-btn" id="sendBtn" disabled>
-          <span class="send-text">전송</span>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-            <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" />
-          </svg>
-        </button>
-      </div>
-    </footer>
+<div class="app">
+  <div class="topbar" id="topbar">
+    <button class="topbar-back" id="backBtn" onclick="goBack()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+    <span class="topbar-title" id="topbarTitle">정책자금 분석</span>
+    <span class="topbar-step" id="stepText"></span>
   </div>
+  <div class="progress-bar" id="progressBar"><div class="progress-fill" id="progressFill"></div></div>
+  <div class="slides-container" id="slidesContainer"></div>
 
-  <!-- 분석/조회 신청 모달 -->
-  <div id="analysisModal" class="modal-overlay">
-    <div class="modal-content">
-      <button class="modal-close" onclick="closeModal('analysisModal')">&times;</button>
-      <div class="modal-header">
-        <h3>📊 정책자금 분석/조회 서비스</h3>
-        <p>맞춤 분석 결과를 상담사가 직접 안내해드립니다</p>
+  <!-- Floating bar (always visible) -->
+  <div class="floating-bar" id="floatingBar" style="display:none;">
+    <button class="btn-primary" id="floatingBtn" disabled>다음</button>
+    <button class="btn-secondary" id="floatingSecBtn" style="display:none;" onclick="openExpertModal()">잘 모르겠어요 · 전문가 상담</button>
+  </div>
+</div>
+
+<!-- Result -->
+<div class="result-overlay" id="resultOverlay">
+  <div class="result-top">
+    <button class="result-close" onclick="closeResult()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    <span class="result-top-title">빅데이터 초정밀 분석 결과</span>
+    <div style="width:40px;"></div>
+  </div>
+  <div class="result-scroll"><div class="result-content" id="resultContent"></div></div>
+  <div class="result-bottom-bar">
+    <button class="btn-primary indigo" onclick="openConsultModal()">✅ 승인가능여부 조회 · 무료상담</button>
+    <button class="btn-secondary" onclick="closeResult();resetAll();">처음부터 다시하기</button>
+  </div>
+</div>
+
+<!-- Consult Modal -->
+<div class="modal-backdrop" id="consultModal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">📞 무료자문상담 신청</div>
+    <div class="modal-desc">전문 상담사가 빠르게 연락드립니다</div>
+    <form id="consultForm" onsubmit="submitForm(event)">
+      <div class="form-group"><label class="form-label">성함(이름) <span class="required">*</span></label><input type="text" id="clientName" class="form-input" placeholder="대표자 성함" required></div>
+      <div class="form-group"><label class="form-label">연락처 <span class="required">*</span></label>
+        <div class="phone-row"><select id="phone1"><option value="010">010</option><option value="011">011</option></select><input type="text" id="phone2" class="form-input" maxlength="4" inputmode="numeric" placeholder="0000" required><input type="text" id="phone3" class="form-input" maxlength="4" inputmode="numeric" placeholder="0000" required></div>
       </div>
-      <form id="analysisForm" onsubmit="submitAnalysisForm(event)">
-        <div class="form-group">
-          <label class="form-label">성함(이름)<span class="required">*</span></label>
-          <input type="text" id="analysisName" class="form-input" placeholder="대표자 성함" required>
+      <div class="agree-row"><input type="checkbox" id="agreePrivacy" required checked><label for="agreePrivacy"><span class="privacy-link" onclick="openPrivacy();event.stopPropagation();">개인정보취급방침</span>에 동의합니다</label></div>
+      <button type="submit" class="btn-primary green" id="submitBtn">정책자금 상담 신청하기</button>
+    </form>
+  </div>
+</div>
+
+<!-- Expert Modal -->
+<div class="modal-backdrop" id="expertModal">
+  <div class="modal-sheet" style="text-align:center;">
+    <div class="modal-handle"></div>
+    <div style="font-size:56px;margin-bottom:16px;">👨‍💼</div>
+    <div class="modal-title">전문가 상담이 필요하신가요?</div>
+    <div class="modal-desc">입력이 어려우시다면<br>전문 상담사가 도와드릴게요</div>
+    <ul style="list-style:none;padding:16px 20px;background:var(--bg-card);border-radius:14px;margin:16px 0 24px;text-align:left;"><li style="font-size:14px;padding:8px 0;">✅ 무료 상담 (비용 없음)</li><li style="font-size:14px;padding:8px 0;">✅ 1:1 맞춤 분석</li><li style="font-size:14px;padding:8px 0;">✅ 빠른 연락 (당일 상담)</li></ul>
+    <button class="btn-primary green" onclick="closeModal('expertModal');openConsultModal();">전문가 무료 상담 받기</button>
+    <button class="btn-secondary" onclick="closeModal('expertModal')">계속 직접 입력하기</button>
+  </div>
+</div>
+
+<!-- Privacy -->
+<div class="modal-backdrop" id="privacyModal">
+  <div class="modal-sheet privacy-sheet">
+    <div class="modal-handle"></div>
+    <h3 style="font-size:18px;font-weight:700;margin-bottom:16px;">개인정보취급방침</h3>
+    <h4>가. 수집하는 개인정보 항목</h4><p>성명, 연락처, 사업장명, 업종, 연매출액 규모</p>
+    <h4>나. 수집 및 이용목적</h4><ul><li>전화 및 문자 상담·안내</li><li>정책자금 정보 제공</li></ul>
+    <h4>다. 보유 및 이용기간</h4><p>상담 완료 후 관계 법령 기간 또는 본인 요청 시까지</p>
+    <h4>라. 동의 거부 시</h4><p>필수 정보 동의 거부 시 상담이 제한될 수 있습니다.</p>
+    <button class="btn-primary" style="margin-top:20px;" onclick="closeModal('privacyModal')">확인</button>
+  </div>
+</div>
+
+<!-- More Products Popup -->
+<div class="more-products-overlay" id="moreProductsModal" onclick="if(event.target===this)this.classList.remove('show')">
+  <div class="more-products-sheet">
+    <div class="more-products-header">
+      <div class="more-products-handle"></div>
+      <div class="more-products-title">추천 정책자금 전체 보기</div>
+      <div class="more-products-desc">더 구체적인 조건에 따라 한도와 금리는 달라질 수 있어요!<br>전문가의 1차 상담은 돈이 들지 않아요. 자세한 자격을 확인해보세요.</div>
+    </div>
+    <div class="more-products-body" id="moreProductsBody"></div>
+    <div class="more-products-cta-box">
+      <div class="more-products-cta-text">내 사업장에 <strong>정확히 맞는 자금</strong>을<br>전문가가 무료로 찾아드려요</div>
+      <button class="btn-primary" onclick="document.getElementById('moreProductsModal').classList.remove('show');openConsultModal();">📞 무료상담 받기</button>
+    </div>
+  </div>
+</div>
+
+<!-- Success -->
+<div class="modal-backdrop" id="successModal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="success-content"><div class="success-icon">✅</div><h3>상담 신청 완료!</h3><p>전문 상담사가<br>빠른 시간 내 연락드리겠습니다.</p></div>
+    <button class="btn-primary" onclick="closeAllModals()">확인</button>
+  </div>
+</div>
+
+<script>
+// ===== Config =====
+const SHEET_URL='https://script.google.com/macros/s/AKfycbzEWx8mkK4IJdDQHnbFaJPzxT8EzW9dcCLnsQRGWf0swJhb0IipF0FKzxPw8ejUM_uj/exec';
+let currentStep=0,userData={},analysisResult={},isSubmitting=false,autoTimer=null;
+
+// ===== Referrer tracking =====
+(function(){const K='first_referrer';if(!sessionStorage.getItem(K)){const u=new URL(location.href);const f=u.searchParams.get('from')||u.searchParams.get('utm_source')||'';const r=document.referrer;let v='직접 방문';if(f)v=`utm: ${f}`;else if(r)v=r;else v=`랜딩: ${location.href}`;sessionStorage.setItem(K,v);}})();
+
+// ===== Industry-specific question mapping =====
+const industryQMap={'제조업':['patent','machine'],'건설업':['patent','machine'],'도소매업':['online','offline','kiosk'],'요식업':['delivery','kiosk'],'숙박업':['reservation','kiosk'],'SW/IT업':['patent'],'서비스업':['patent'],'운송업':[],'기타':[]};
+
+// ===== Questions =====
+function getQuestions(industry){
+  const base=[
+    {key:'intro1',type:'intro1'},
+    {key:'intro2',type:'intro2'},
+    {key:'company',label:'사업자 정보',title:'사업장명(상호)을\n입력해주세요',hint:'',type:'text',placeholder:'예: 바름연구소'},
+    {key:'business_type',label:'사업자 정보',title:'사업자 형태를\n선택해주세요',hint:'',type:'choice',options:['개인사업자','법인사업자']},
+    {key:'industry',label:'사업자 정보',title:'업종을\n선택해주세요',hint:'',type:'choice',options:['제조업','도소매업','건설업','요식업','숙박업','운송업','SW/IT업','서비스업','기타']},
+    {key:'business_career',label:'사업자 정보',title:'사업자 업력을\n선택해주세요',hint:'',type:'choice',options:['1년 미만','3년 미만','5년 미만','7년 미만','7년 이상']},
+  ];
+  // 업력 1년 미만이면 창업시기 질문 추가
+  if(userData.business_career==='1년 미만'){
+    base.push({key:'startup_date',label:'사업자 정보',title:'창업 시기는\n언제인가요?',hint:'사업자등록일 기준으로 선택해주세요',type:'choice',options:['1개월 이내','3개월 이내','6개월 이내','9개월 이내','1년 이내']});
+  }
+  base.push({key:'employee_count',label:'사업자 정보',title:'상시 근로자 수를\n입력해주세요',hint:'대표자·일용직 제외\n5인 미만 소상공인 / 5인 이상 중소기업\n\n없어도 괜찮아요! 3분이면 진단이 가능하니, 계속 진행해보세요!',type:'number',placeholder:'예: 3'});
+
+  const spec=[];
+  const fields=industryQMap[industry]||[];
+  if(fields.includes('patent'))spec.push({key:'patent_count',label:'업종별 정보',title:'보유 중인 특허 수를\n입력해주세요',hint:'특허 보유 시 기술사업화자금 우대\n\n없어도 괜찮아요! 3분이면 진단이 가능하니, 계속 진행해보세요!',type:'number',placeholder:'없으면 0'});
+  if(fields.includes('machine'))spec.push({key:'has_machine',label:'업종별 정보',title:'기계/설비를\n보유하고 계신가요?',hint:'설비 보유 시 담보 활용 가능',type:'choice',options:['보유함','보유 안함']});
+  if(fields.includes('online'))spec.push({key:'online_sales',label:'업종별 정보',title:'온라인 판매를\n하시나요?',hint:'온라인 판매 시 스마트상점 우대',type:'choice',options:['예','아니오']});
+  if(fields.includes('offline'))spec.push({key:'offline_store',label:'업종별 정보',title:'오프라인 매장을\n보유하고 계신가요?',hint:'',type:'choice',options:['보유함','보유 안함']});
+  if(fields.includes('kiosk'))spec.push({key:'kiosk',label:'업종별 정보',title:'키오스크를\n사용하시나요?',hint:'키오스크가 없어도 괜찮아요.\n테이블오더와 같은 스마트기기를 이용하고 계신가요?',type:'choice',options:['사용함','사용 안함']});
+  if(fields.includes('delivery'))spec.push({key:'delivery',label:'업종별 정보',title:'배달앱을\n사용하시나요?',hint:'배달의민족, 여기요, 쿠팡이츠와 같은\n앱을 이용하신다면 더 좋아요!',type:'choice',options:['사용함','사용 안함']});
+  if(fields.includes('reservation'))spec.push({key:'reservation',label:'업종별 정보',title:'숙박앱을\n사용하시나요?',hint:'야놀자, 여기어때 등',type:'choice',options:['사용함','사용 안함']});
+  const rest=[
+    {key:'average_sales',label:'매출 정보',title:'1년 평균 매출액은\n얼마인가요?',hint:'현금영수증, 카드결제, 세금계산서를 기준으로 계산해요!\n신고되지 않은 현금매출은 제외하고 입력해주세요.',type:'number',placeholder:'예: 50000 (5억원)'},
+    {key:'sales_growth',label:'매출 정보',title:'최근 2년간 매출이\n10% 이상 성장했나요?',hint:'성장기업 금리 0.2%p 우대',type:'choice',options:['예','아니오'],tipBox:{title:'💡 잠깐! 정책자금에 대해서 알아봐요.',text:'부족한 담보력을 나라에서 채워줘서 사업자들의 성장을 촉진하는 정책이에요.<br>저금리로! 높은 한도를 받을 수 있다는게 포인트!<br>꼭 받아서 잘되셔야해요!'}},
+    {key:'mortgage_loan',label:'대출 정보',title:'현재 담보대출\n잔액을 입력해주세요',hint:'단위: 만원 / 없으면 0',type:'number',placeholder:'없으면 0',tipBox:{title:'💡 잠깐! 대출이 있어도 가능할까요?',text:'정책자금은 사업을 중점으로 대출을 결정해요!<br>대출이 있어도 가능합니다!'}},
+    {key:'credit_loan',label:'대출 정보',title:'현재 신용대출\n잔액을 입력해주세요',hint:'카드론, 캐피탈, 1금융권 등\n모든 금융권의 대출을 의미해요',type:'number',placeholder:'없으면 0',tipBox:{title:'💡 잠깐! 이미 정책자금을 받았다면요?',text:'이미 정책자금을 받았어도 가능해요.<br>직접대출, 대리대출 2가지 형태로 분류가 되거든요.<br>하지만, 매출에 비해 과도하게 높은 경우에는 제한될 수 있으니<br>진단을 받아보는게 좋다는 점!'}},
+    {key:'KCB',label:'신용 정보',title:'KCB 신용점수를\n입력해주세요',hint:'카카오뱅크·토스에서 확인 가능',type:'number',placeholder:'예: 750'},
+    {key:'NICE',label:'신용 정보',title:'NICE 신용점수를\n입력해주세요',hint:'카카오뱅크·토스에서 확인 가능',type:'number',placeholder:'예: 800'},
+    {key:'overdue',label:'신용 정보',title:'현재 연체 또는\n체납이 있으신가요?',hint:'연체 시에는 정책자금이 이용 불가할 수 있어요.',type:'choice',options:['없음','있음']},
+  ];
+  // 연체 있음 → 연체 내용 텍스트 입력
+  if(userData.overdue==='있음'){
+    rest.push({key:'overdue_detail',label:'신용 정보',title:'어떤 연체가\n있으세요?',hint:'예: 카드 연체 2건, 세금 체납 등\n자세히 적어주시면 더 정확한 분석이 가능해요',type:'text',placeholder:'연체 내용을 입력해주세요'});
+  }
+  rest.push({key:'recovery_history',label:'신용 정보',title:'개인회생·파산·신용회복\n이력이 있으신가요?',hint:'6회차 이상 성실납입 중이면 이용 가능',type:'choice',options:['없음','있음']});
+  // 회생이력 있음 → 내용 텍스트 입력
+  if(userData.recovery_history==='있음'){
+    rest.push({key:'recovery_detail',label:'신용 정보',title:'어떤 이력이\n있으세요?',hint:'예: 개인회생 진행 중 (12회차), 파산 면책 완료 등\n자세히 적어주시면 더 정확한 분석이 가능해요',type:'text',placeholder:'이력 내용을 입력해주세요'});
+  }
+  rest.push({key:'loading',type:'loading'});
+  return [...base,...spec,...rest];
+}
+let questions=getQuestions('');
+
+function formatMoney(n){if(!n||n===0)return'0원';if(n>=10000){const a=Math.floor(n/10000),b=n%10000;return b>0?`${a}억 ${b.toLocaleString()}만원`:`${a}억원`;}return`${n.toLocaleString()}만원`;}
+function formatLimit(v){if(v===0)return'진행 불가';if(v>=10000){const a=Math.floor(v/10000),b=v%10000;return b>0?`${a}억 ${b.toLocaleString()}만원`:`${a}억원`;}return`${v.toLocaleString()}만원`;}
+
+// ===== Slide rendering =====
+function renderSlide(idx){
+  const q=questions[idx];
+  const s=document.createElement('div');
+  s.className='slide';s.id=`slide-${idx}`;s.dataset.step=idx;
+
+  if(q.type==='intro1'){
+    s.classList.add('intro-slide');
+    s.innerHTML=`
+      <div class="intro-text-area">
+        <h1 class="intro-title anim-1"><em>정책자금</em> 뭐가 가능한지<br>어려워서 <span class="red">답답</span>하다구요?</h1>
+        <p class="intro-sub anim-2">종류만 수천개라 막막하죠..<br><strong>놓치면 자금이 빠르게 소진됩니다.</strong></p>
+      </div>
+      <div class="intro-video-area anim-3">
+        <div class="video-frame">
+          <video autoplay loop muted playsinline>
+            <source src="https://lab-bareum.com/wp-content/uploads/2026/02/흰색_배경_영상_생성.mp4" type="video/mp4">
+          </video>
         </div>
-        <div class="form-group">
-          <label class="form-label">연락처<span class="required">*</span></label>
-          <div class="phone-input-group">
-            <select id="analysisPhone1">
-              <option value="010">010</option>
-              <option value="011">011</option>
-            </select>
-            <input type="text" id="analysisPhone2" class="form-input" maxlength="4" inputmode="numeric" placeholder="0000" required>
-            <input type="text" id="analysisPhone3" class="form-input" maxlength="4" inputmode="numeric" placeholder="0000" required>
+      </div>
+      <div class="swipe-hint">우측으로 넘기기 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+      <div class="auto-timer"><div class="auto-timer-fill" id="autoTimerFill1"></div></div>
+    `;
+  } else if(q.type==='intro2'){
+    s.classList.add('intro-slide','intro-slide-2');
+    s.innerHTML=`
+      <div class="intro2-centered">
+        <h1 class="intro-title anim-1">내 사업장에 맞는<br><em>정책자금</em> 초정밀 분석</h1>
+        <div class="intro2-stats-grid anim-2">
+          <div class="intro2-stat-chip"><span class="val" id="cnt1">0</span><span class="lbl">누적 분석</span></div>
+          <div class="intro2-stat-chip"><span class="val" id="cnt2">0</span><span class="lbl">예산 규모</span></div>
+          <div class="intro2-stat-chip"><span class="val">100억</span><span class="lbl">최대 한도</span></div>
+          <div class="intro2-stat-chip"><span class="val">1%~</span><span class="lbl">금리</span></div>
+        </div>
+        <div class="intro-video-area anim-3">
+          <div class="video-frame">
+            <video autoplay loop muted playsinline>
+              <source src="https://lab-bareum.com/wp-content/uploads/2026/02/붓으로_그린_흰색_태극기_영상.mp4" type="video/mp4">
+            </video>
           </div>
         </div>
-        <div class="agreement-box">
-          <input type="checkbox" id="analysisAgreePrivacy" required>
-          <label for="analysisAgreePrivacy">
-            <span class="privacy-link" onclick="openModal('privacyModal'); event.stopPropagation();">개인정보 수집·이용 동의 [보기]</span> <span style="color:#ef4444;">*</span>
-          </label>
-        </div>
-        <button type="submit" class="submit-btn analysis-submit-btn" id="analysisSubmitBtn">
-          ✅ 자금분석결과 · 무료자문상담 받기
-        </button>
-      </form>
-    </div>
-  </div>
-
-  <!-- 상담 신청 모달 -->
-  <div id="consultModal" class="modal-overlay">
-    <div class="modal-content">
-      <button class="modal-close" onclick="closeModal('consultModal')">&times;</button>
-      <div class="modal-header">
-        <h3>📞 무료자문상담 신청</h3>
-        <p>전문 상담사가 빠르게 연락드립니다</p>
+        <div class="intro2-trust anim-4">🚀 사업자라면 누구나 신청 가능! 함께 성장해볼까요?</div>
       </div>
-      <div id="modalProductInfo" class="modal-product-info" style="display:none;">
-        <div class="modal-product-name" id="modalProductName"></div>
-        <div class="modal-product-detail" id="modalProductDetail"></div>
-      </div>
-      <form id="consultForm" onsubmit="submitConsultForm(event)">
-        <div class="form-group">
-          <label class="form-label">성함(이름)<span class="required">*</span></label>
-          <input type="text" id="clientName" class="form-input" placeholder="대표자 성함" required>
-        </div>
-        <div class="form-group">
-          <label class="form-label">연락처<span class="required">*</span></label>
-          <div class="phone-input-group">
-            <select id="phone1">
-              <option value="010">010</option>
-              <option value="011">011</option>
-            </select>
-            <input type="text" id="phone2" class="form-input" maxlength="4" inputmode="numeric" placeholder="0000" required>
-            <input type="text" id="phone3" class="form-input" maxlength="4" inputmode="numeric" placeholder="0000" required>
-          </div>
-        </div>
-        <div class="agreement-box">
-          <input type="checkbox" id="agreePrivacy" required>
-          <label for="agreePrivacy">
-            <span class="privacy-link" onclick="openModal('privacyModal'); event.stopPropagation();">[개인정보취급방침]</span>에 동의합니다 <span style="color:#ef4444;">*</span>
-          </label>
-        </div>
-        <button type="submit" class="submit-btn" id="submitBtn">정책자금 상담 신청하기</button>
-      </form>
-    </div>
-  </div>
+    `;
+  } else if(q.type==='loading'){
+    s.classList.add('loading-slide');
+    s.innerHTML=`<div class="loading-content"><div class="loading-ring"></div><div class="loading-title">빅데이터 초정밀 분석 중</div><div class="loading-desc">입력하신 정보를 바탕으로<br>맞춤 결과를 계산하고 있어요</div><div class="loading-steps"><div class="loading-step" id="ls1"><span class="loading-step-icon">📊</span><span>사업자 정보 분석</span></div><div class="loading-step" id="ls2"><span class="loading-step-icon">⚖️</span><span>적합 정책자금 매칭</span></div><div class="loading-step" id="ls3"><span class="loading-step-icon">💰</span><span>예상 한도·금리 계산</span></div><div class="loading-step" id="ls4"><span class="loading-step-icon">✅</span><span>결과 정리</span></div></div></div>`;
+  } else if(q.type==='choice'){
+    s.classList.add('question-slide');
+    const tipHtml=q.tipBox?`<div class="tip-box"><div class="tip-box-title">${q.tipBox.title}</div><div class="tip-box-text">${q.tipBox.text}</div></div>`:'';
+    s.innerHTML=`<div class="question-content"><div class="question-label">${q.label}</div><h2 class="question-title">${q.title}</h2>${q.hint?`<p class="question-hint">${q.hint}</p>`:'<div style="height:20px;"></div>'}<div class="choices">${q.options.map(o=>`<button class="choice-item" onclick="selectChoice(this,'${o.replace(/'/g,"\\'")}')"><span>${o}</span><div class="ck"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></div></button>`).join('')}</div>${tipHtml}</div>`;
+  } else if(q.type==='text'||q.type==='number'){
+    s.classList.add('question-slide');
+    const tipHtml=q.tipBox?`<div class="tip-box"><div class="tip-box-title">${q.tipBox.title}</div><div class="tip-box-text">${q.tipBox.text}</div></div>`:'';
+    s.innerHTML=`<div class="question-content"><div class="question-label">${q.label}</div><h2 class="question-title">${q.title}</h2>${q.hint?`<p class="question-hint">${q.hint}</p>`:'<div style="height:20px;"></div>'}<div class="number-input-wrapper"><input type="text" class="number-input" id="numInput-${idx}" inputmode="${q.type==='number'?'numeric':'text'}" placeholder="${q.placeholder||''}" autocomplete="off"><div class="number-unit" id="numUnit-${idx}"></div></div>${tipHtml}</div>`;
+  }
+  document.getElementById('slidesContainer').appendChild(s);
+  return s;
+}
 
-  <!-- 개인정보취급방침 모달 -->
-  <div id="privacyModal" class="modal-overlay">
-    <div class="modal-content privacy-modal-content">
-      <button class="modal-close" onclick="closeModal('privacyModal')">&times;</button>
-      <h3 style="font-size:20px;font-weight:700;margin-bottom:20px;color:#1e1b4b;">개인정보취급방침</h3>
-      <h4>가. 수집하는 개인정보 항목 및 수집방법</h4>
-      <p>– 성명, 연락처(휴대전화 번호), 사업자명, 업종, 연매출액 규모</p>
-      
-      <h4>나. 개인정보의 수집 및 이용목적</h4>
-      <ul>
-        <li>담당자들의 전화 및 문자 상담·안내</li>
-        <li>추후 문자(SMS)를 통한 정책자금 정보 수신</li>
-        <li>정책자금연구소 바름 홍보/광고내용 수신</li>
-      </ul>
-      
-      <h4>다. 보유 및 이용기간</h4>
-      <p>상담 완료 후 관계 법령이 정한 기간 또는 본인 요청 시까지 보유·이용</p>
-      <ul>
-        <li>전자상거래법: 계약·결제·분쟁 기록 5년</li>
-        <li>세법: 장부 및 증빙 5년</li>
-        <li>통신비밀보호법: 접속 로그 3개월</li>
-      </ul>
-      
-      <h4>라. 동의 거부 시 안내</h4>
-      <p>필수 정보 동의 거부 시 상담 및 정보 제공이 제한될 수 있습니다.</p>
-      
-      <h4>문의</h4>
-      <p>
-        정책자금연구소 바름 / 대표: 김수용<br>
-        서울특별시 강남구 봉은사로30길 68 6층 35호<br>
-        1533-9784 · <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="f09c9192de92918295859db0979d91999cde939f9d">[email&#160;protected]</a><br>
-        사업자등록번호 340-49-00912
-      </p>
-      
-      <button class="submit-btn" style="margin-top:20px;" onclick="closeModal('privacyModal')">확인</button>
-    </div>
-  </div>
+function showSlide(idx,dir='forward'){
+  if(autoTimer){clearInterval(autoTimer);autoTimer=null;}
+  const prev=document.querySelector('.slide.active');
+  if(prev){prev.classList.remove('active');prev.classList.add(dir==='forward'?'exit-left':'exit-right');setTimeout(()=>{if(prev.parentNode)prev.remove();},500);}
+  let slide=document.getElementById(`slide-${idx}`);
+  if(!slide)slide=renderSlide(idx);
+  else{slide.classList.remove('exit-left','exit-right');slide.style.transform=dir==='forward'?'translateX(80px)':'translateX(-80px)';slide.style.opacity='0';}
+  requestAnimationFrame(()=>{requestAnimationFrame(()=>{slide.classList.add('active');slide.style.transform='';slide.style.opacity='';});});
 
-  <!-- 성공 모달 -->
-  <div id="successModal" class="modal-overlay">
-    <div class="modal-content">
-      <div class="success-icon">✓</div>
-      <div class="success-title">신청이 완료되었습니다!</div>
-      <div class="success-message">
-        전문 상담사가 빠른 시간 내에<br>연락드리겠습니다.<br><br>
-        <strong>상담 가능 시간:</strong> 평일 09:00 ~ 18:00
-      </div>
-      <button class="success-btn" onclick="closeModal('successModal')">확인</button>
-    </div>
-  </div>
+  const q=questions[idx];
+  const topbar=document.getElementById('topbar');
+  const backBtn=document.getElementById('backBtn');
+  const stepText=document.getElementById('stepText');
+  const progressBar=document.getElementById('progressBar');
+  const topTitle=document.getElementById('topbarTitle');
+  const floatingBar=document.getElementById('floatingBar');
+  const floatingBtn=document.getElementById('floatingBtn');
+  const floatingSecBtn=document.getElementById('floatingSecBtn');
 
-  <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
-    // ============ 유입경로 추적 ============
-    (function() {
-      const KEY = 'first_referrer';
-      if (!sessionStorage.getItem(KEY)) {
-        const url = new URL(location.href);
-        const fromParam = url.searchParams.get('from') || url.searchParams.get('utm_source') || 
-                          url.searchParams.get('utm_medium') || url.searchParams.get('utm_campaign');
-        const fullReferrer = document.referrer;
-        let refValue = "직접 방문";
+  const isIntro=q.type==='intro1'||q.type==='intro2';
+  const isLoading=q.type==='loading';
+  topbar.className=`topbar${!isIntro&&!isLoading?' solid':''}`;
+  topTitle.classList.toggle('visible',!isIntro&&!isLoading);
+  backBtn.classList.toggle('visible',idx>0&&!isLoading);
 
-        if (fromParam) {
-          refValue = `from/utm: ${fromParam}`;
-        } else if (fullReferrer) {
-          refValue = fullReferrer;
-          if (fullReferrer.includes("blog.naver")) refValue = `네이버 블로그: ${fullReferrer}`;
-          if (fullReferrer.includes("cafe.naver")) refValue = `네이버 카페: ${fullReferrer}`;
-          if (fullReferrer.includes("instagram")) refValue = `인스타그램: ${fullReferrer}`;
-          if (fullReferrer.includes("youtube")) refValue = `유튜브: ${fullReferrer}`;
-          if (fullReferrer.includes("facebook")) refValue = `페이스북: ${fullReferrer}`;
-          if (fullReferrer.includes("kakao")) refValue = `카카오톡: ${fullReferrer}`;
-        } else {
-          refValue = `랜딩: ${location.href}`;
-        }
-        sessionStorage.setItem(KEY, refValue);
+  const totalQ=questions.length-3;
+  const qIdx=idx-2;
+  if(!isIntro&&!isLoading&&qIdx>0){stepText.textContent=`${qIdx}/${totalQ}`;stepText.classList.add('visible');progressBar.classList.add('visible');document.getElementById('progressFill').style.width=`${(qIdx/totalQ)*100}%`;}
+  else{stepText.classList.remove('visible');progressBar.classList.remove('visible');}
+
+  // Floating bar logic
+  if(q.type==='intro1'){
+    floatingBar.style.display='block';
+    floatingBtn.textContent='다음';floatingBtn.disabled=false;floatingBtn.className='btn-primary';floatingBtn.style.display='';
+    floatingBtn.onclick=()=>advance();
+    floatingSecBtn.style.display='none';
+    // Auto advance after 3s
+    let elapsed=0;
+    const fill=document.getElementById('autoTimerFill1');
+    autoTimer=setInterval(()=>{elapsed+=50;if(fill)fill.style.width=`${(elapsed/3000)*100}%`;if(elapsed>=3000){clearInterval(autoTimer);autoTimer=null;advance();}},50);
+  } else if(q.type==='intro2'){
+    floatingBar.style.display='block';
+    floatingBtn.textContent='🚀 초정밀 분석 시작하기';floatingBtn.disabled=false;floatingBtn.className='btn-primary indigo bounce';
+    floatingBtn.onclick=()=>advance();
+    floatingSecBtn.style.display='none';
+    setTimeout(()=>{animateCounter('cnt1',0,25000,4000,'건+');animateCounter('cnt2',0,60,3500,'조+');},400);
+  } else if(q.type==='choice'){
+    floatingBar.style.display='block';
+    floatingBtn.style.display='none';
+    floatingSecBtn.style.display='block';
+  } else if(q.type==='text'||q.type==='number'){
+    floatingBar.style.display='block';
+    floatingBtn.style.display='';floatingBtn.textContent='다음';floatingBtn.disabled=true;floatingBtn.className='btn-primary';
+    floatingBtn.onclick=()=>submitInput(idx);
+    floatingSecBtn.style.display='block';
+    setTimeout(()=>{
+      const inp=document.getElementById(`numInput-${idx}`);
+      if(inp){
+        inp.focus();
+        inp.addEventListener('input',function(){
+          let raw=this.value;
+          if(q.type==='number'){raw=raw.replace(/[^0-9]/g,'');if(raw)this.value=parseInt(raw).toLocaleString();else this.value='';}
+          floatingBtn.disabled=!this.value.trim();
+          const u=document.getElementById(`numUnit-${idx}`);
+          if(q.type==='number'&&raw&&parseInt(raw)>0&&['average_sales','credit_loan','mortgage_loan'].includes(q.key)){u.innerHTML=`= <strong>${formatMoney(parseInt(raw))}</strong>`;}else{u.innerHTML='';}
+        });
+        inp.addEventListener('keydown',function(e){if(e.key==='Enter'&&this.value.trim())submitInput(idx);});
       }
-    })();
+    },400);
+  } else if(q.type==='loading'){
+    floatingBar.style.display='none';
+    runLoading();
+  }
+}
 
-    // ============ 분석 결과 저장 변수 ============
-    let analysisResult = {
-      limit: 0,
-      rate: 0,
-      probability: 0,
-      products: [],
-      bizCategory: ''
+function animateCounter(id,start,end,duration,suffix){const el=document.getElementById(id);if(!el)return;const t0=performance.now();const isK=end>=1000;function tick(now){const p=Math.min((now-t0)/duration,1);const e=1-Math.pow(1-p,3);const c=start+(end-start)*e;if(isK)el.textContent=Math.round(c).toLocaleString()+suffix;else el.textContent=Math.round(c)+suffix;if(p<1)requestAnimationFrame(tick);}requestAnimationFrame(tick);}
+
+function selectChoice(btn,val){
+  btn.closest('.slide').querySelectorAll('.choice-item').forEach(b=>{b.classList.remove('selected');b.disabled=true;});
+  btn.classList.add('selected');
+  const q=questions[currentStep];
+  userData[q.key]=val;
+  // Regenerate questions when conditional triggers change
+  if(q.key==='industry'||q.key==='business_career'||q.key==='overdue'||q.key==='recovery_history'){
+    questions=getQuestions(userData.industry||'');
+  }
+  setTimeout(()=>advance(),280);
+}
+
+function submitInput(idx){
+  const inp=document.getElementById(`numInput-${idx}`);
+  const q=questions[currentStep];
+  let val=inp.value.trim();
+  if(q.type==='number'){val=parseInt(val.replace(/[^0-9]/g,''))||0;}
+  if(q.type==='text'&&!val)return;
+  userData[q.key]=val;
+  advance();
+}
+
+function advance(){currentStep++;showSlide(currentStep,'forward');}
+function goBack(){if(currentStep<=0)return;const q=questions[currentStep];if(q.key&&!q.key.startsWith('intro'))delete userData[q.key];currentStep--;showSlide(currentStep,'back');}
+
+function openMoreProducts(){
+  const body=document.getElementById('moreProductsBody');
+  if(window._allProdsHtml)body.innerHTML=window._allProdsHtml.slice(3).join('');
+  document.getElementById('moreProductsModal').classList.add('show');
+}
+
+function runLoading(){
+  ['ls1','ls2','ls3','ls4'].forEach((id,i)=>{
+    setTimeout(()=>{const e=document.getElementById(id);if(e)e.classList.add('visible');},300+i*550);
+    setTimeout(()=>{const e=document.getElementById(id);if(e)e.classList.add('done');},650+i*550);
+  });
+  setTimeout(()=>{analysisResult=analyze(userData);showResultScreen();},3200);
+}
+
+// ===== Touch swipe for intro =====
+let touchStartX=0;
+document.addEventListener('touchstart',function(e){touchStartX=e.touches[0].clientX;},{passive:true});
+document.addEventListener('touchend',function(e){
+  const diff=touchStartX-e.changedTouches[0].clientX;
+  if(diff>60&&(questions[currentStep].type==='intro1'||questions[currentStep].type==='intro2')){advance();}
+},{passive:true});
+
+// ===== Full Policy Fund Product DB (from document 3) =====
+const smallBizFunds={
+  general_stable:{name:'일반경영안정자금',org:'소진공',target:'소상공인 (업력 무관)',maxLimit:7000,minRate:3.58,period:'5년(2년 거치)'},
+  emergency_crisis:{name:'긴급경영안정자금(경영애로)',org:'소진공',target:'일시적 경영애로 소상공인',maxLimit:7000,minRate:2.98,period:'5년(2년 거치)'},
+  low_credit:{name:'신용취약소상공인자금',org:'소진공',target:'NCB 839점 이하 소상공인',maxLimit:3000,minRate:4.58,period:'5년(2년 거치)'},
+  youth_employ:{name:'청년고용연계자금',org:'소진공',target:'청년대표 또는 청년고용 소상공인',maxLimit:7000,minRate:2.98,period:'5년(2년 거치)'},
+  small_manufacturer:{name:'소공인특화자금',org:'소진공',target:'제조업 소공인 (10인 미만)',maxLimit:50000,minRate:3.58,period:'운전5년/시설8년'},
+  innovation_growth:{name:'혁신성장촉진자금',org:'소진공',target:'수출/매출성장/스마트 소상공인',maxLimit:100000,minRate:3.38,period:'운전5년/시설8년'},
+  refinance:{name:'대환대출',org:'소진공',target:'고금리 대출 보유 소상공인',maxLimit:5000,minRate:4.5,period:'10년(2년 거치)'},
+  local_guarantee:{name:'지역신용보증재단 보증',org:'지역신보',target:'소기업·소상공인',maxLimit:80000,minRate:3.0,period:'보증기간 1~5년'},
+  miso_finance:{name:'미소금융',org:'서민금융진흥원',target:'NCB 749점 이하 소상공인',maxLimit:7000,minRate:4.5,period:'5년(1년 거치)'},
+  restart_hope:{name:'재도전특별자금(희망형)',org:'소진공',target:'희망리턴패키지 수혜 소상공인',maxLimit:10000,minRate:3.58,period:'5년(2년 거치)'},
+  restart_general:{name:'재도전특별자금(일반형)',org:'소진공',target:'재창업/채무조정 소상공인',maxLimit:7000,minRate:4.58,period:'5년(2년 거치)'}
+};
+const smeFunds={
+  startup_base:{name:'창업기반지원자금',org:'중진공',target:'업력 7년 미만 창업기업',maxLimit:600000,minRate:2.68,period:'시설10년/운전5년'},
+  youth_startup:{name:'청년전용창업자금',org:'중진공',target:'만39세 이하, 업력 3년 미만',maxLimit:20000,minRate:2.5,period:'시설10년/운전6년'},
+  tech_commercialize:{name:'개발기술사업화자금',org:'중진공',target:'특허/R&D 보유 기술기업',maxLimit:600000,minRate:2.98,period:'시설10년/운전5년'},
+  export_domestic:{name:'내수기업수출기업화',org:'중진공',target:'수출 10만불 미만 기업',maxLimit:50000,minRate:2.98,period:'운전5년(2년 거치)'},
+  export_global:{name:'수출기업글로벌화',org:'중진공',target:'수출 10만불 이상 기업',maxLimit:600000,minRate:3.18,period:'시설10년/운전5년'},
+  innovation_growth_sme:{name:'혁신성장지원자금',org:'중진공',target:'업력 7년 이상 성장기업',maxLimit:1000000,minRate:3.48,period:'시설10년/운전5년'},
+  smart_factory:{name:'제조현장스마트화',org:'중진공',target:'스마트공장 도입 기업',maxLimit:1000000,minRate:2.98,period:'시설10년/운전5년'},
+  business_change:{name:'사업전환자금',org:'중진공',target:'사업전환계획 승인기업',maxLimit:1000000,minRate:3.18,period:'시설10년/운전6년'},
+  kodit_general:{name:'신용보증기금 보증',org:'신용보증기금',target:'중소기업 전반',maxLimit:300000,minRate:3.0,period:'보증기간 1~3년'},
+  kibo_tech:{name:'기술보증기금 보증',org:'기술보증기금',target:'기술력 보유 중소기업',maxLimit:300000,minRate:2.8,period:'보증기간 1~3년'},
+  startup_nest:{name:'창업기업육성(Start-up NEST)',org:'신용보증기금',target:'업력 7년 미만 창업기업',maxLimit:100000,minRate:2.5,period:'보증기간 최대 3년'},
+  restart_sme:{name:'재도전재기지원보증',org:'기술보증기금',target:'성실실패 재창업 기업',maxLimit:80000,minRate:2.5,period:'보증기간 최대 5년'}
+};
+
+function isSmallBiz(d){const mfg=['제조업','건설업','운송업'];const lim=mfg.includes(d.industry)?10:5;if((d.employee_count||0)>=lim)return false;if((d.average_sales||0)<10000)return true;if((d.average_sales||0)>=100000)return false;return true;}
+
+function analyze(d){
+  const emp=parseInt(d.employee_count)||0;const avgS=parseInt(d.average_sales)||0;const cl=parseInt(d.credit_loan)||0;const ml=parseInt(d.mortgage_loan)||0;
+  const nice=parseInt(d.NICE)||700;const kcb=parseInt(d.KCB)||700;const pat=parseInt(d.patent_count)||0;
+  const totalDebt=cl+ml;const debtRatio=avgS>0?totalDebt/avgS:1;
+  const overdue=d.overdue==='있음';const isSmall=isSmallBiz({industry:d.industry,employee_count:emp,average_sales:avgS});
+  const isSmart=[d.kiosk,d.delivery,d.reservation,d.online_sales].includes('사용함')||d.online_sales==='예';
+  const isGrowth=d.sales_growth==='예';const hasTech=pat>0;const hasMachine=d.has_machine==='보유함';
+  const isHighCredit=nice>=750&&kcb>=700;
+  const hasRecovery=d.recovery_history==='있음';
+
+  // Probability
+  let prob=93;
+  if(overdue)prob=0;
+  else{
+    prob-=debtRatio*25;
+    if(avgS>0)prob+=Math.log10(avgS)*2;
+    const avg=(nice+kcb)/2;if(avg>=800)prob+=5;else if(avg<700)prob-=10;
+    if(d.business_career==='1년 미만')prob-=5;
+    if(d.business_career==='7년 이상'&&debtRatio>1)prob-=15;
+  }
+  prob=Math.max(10,Math.min(95,Math.round(prob)));
+
+  // Rate
+  let rate=4.3;if(nice>=850)rate=3.1;else if(nice>650)rate=parseFloat((4.3-((nice-650)/200)*1.2).toFixed(2));
+
+  // Limit
+  let lr=0.25;
+  if(!overdue){
+    if(isSmart&&isHighCredit)lr=0.6;else if(isSmart)lr=0.4;
+    else if(avgS>=8000)lr=isHighCredit?0.45:0.3;else if(avgS>=2000)lr=isHighCredit?0.5:0.35;
+    else lr=isHighCredit?0.3:0.25;
+    if(hasTech)lr+=0.1;if(isGrowth)lr+=0.05;if(hasMachine)lr+=0.05;
+  }
+  const limit=overdue?0:Math.floor(avgS*lr);
+
+  // Insights
+  let ins=[];
+  const biz=isSmall?'소상공인':'중소기업';
+  ins.push({icon:isSmall?'🏪':'🏢',text:`${biz} 분류 - ${isSmall?'소진공/지역신보':'중진공/신보/기보'} 자금 대상`,type:'positive'});
+  if(isHighCredit)ins.push({icon:'✅',text:'신용등급 우수 - 최저금리 적용 가능',type:'positive'});
+  else ins.push({icon:'💡',text:'신용점수 개선 시 금리 우대 가능',type:'warning'});
+  if(hasTech)ins.push({icon:'🏆',text:`특허 ${pat}건 보유 - 기술사업화자금 우대`,type:'positive'});
+  if(isGrowth)ins.push({icon:'🚀',text:'매출 성장 기업 - 금리 0.2%p 우대',type:'positive'});
+  if(isSmart)ins.push({icon:'📱',text:'스마트상점 인정 - 한도 60%까지 확대',type:'positive'});
+  if(hasMachine)ins.push({icon:'🏭',text:'설비 보유 - 시설자금/담보대출 가능',type:'positive'});
+
+  // ===== Full Recommendation Engine =====
+  let products=[];
+  if(isSmall){
+    // 저신용자
+    if(nice<=839)products.push({...smallBizFunds.low_credit,estLimit:3000,estRate:4.58});
+    if(nice<=749)products.push({...smallBizFunds.miso_finance,estLimit:7000,estRate:4.5});
+    // 스마트 소상공인
+    if(isSmart)products.push({...smallBizFunds.innovation_growth,estLimit:Math.min(limit*1.5,20000),estRate:3.38});
+    // 청년
+    if(['1년 미만','3년 미만'].includes(d.business_career))products.push({...smallBizFunds.youth_employ,estLimit:Math.min(limit,7000),estRate:2.98});
+    // 제조업
+    if(d.industry==='제조업')products.push({...smallBizFunds.small_manufacturer,estLimit:Math.min(limit*2,50000),estRate:3.58});
+    // 매출 성장
+    if(isGrowth)products.push({...smallBizFunds.innovation_growth,estLimit:Math.min(limit*1.3,20000),estRate:3.18});
+    // 재도전
+    if(hasRecovery)products.push({...smallBizFunds.restart_general,estLimit:Math.min(limit,7000),estRate:4.58});
+    // 기본: 일반경영안정
+    products.push({...smallBizFunds.general_stable,estLimit:Math.min(limit,7000),estRate:3.58});
+    // 지역신보
+    if(nice>=700)products.push({...smallBizFunds.local_guarantee,estLimit:Math.min(limit*1.5,30000),estRate:3.0});
+    // 고금리 대환
+    if(cl>0&&rate>5)products.push({...smallBizFunds.refinance,estLimit:Math.min(cl,5000),estRate:4.5});
+  } else {
+    // 특허/기술
+    if(hasTech){
+      products.push({...smeFunds.tech_commercialize,estLimit:Math.min(limit*3,300000),estRate:2.98});
+      products.push({...smeFunds.kibo_tech,estLimit:Math.min(limit*2,100000),estRate:2.8});
+    }
+    // 창업기업 (업력 7년 미만)
+    if(['1년 미만','3년 미만','5년 미만','7년 미만'].includes(d.business_career)){
+      products.push({...smeFunds.startup_base,estLimit:Math.min(limit*2,60000),estRate:2.68});
+      if(['1년 미만','3년 미만'].includes(d.business_career))products.push({...smeFunds.youth_startup,estLimit:Math.min(limit,20000),estRate:2.5});
+      products.push({...smeFunds.startup_nest,estLimit:Math.min(limit*1.5,50000),estRate:2.5});
+    }
+    // 스마트공장/제조업
+    if(hasMachine||d.industry==='제조업')products.push({...smeFunds.smart_factory,estLimit:Math.min(limit*3,100000),estRate:2.98});
+    // 수출
+    if(isGrowth&&avgS>=50000)products.push({...smeFunds.export_global,estLimit:Math.min(limit*2,100000),estRate:3.18});
+    else products.push({...smeFunds.export_domestic,estLimit:Math.min(limit,50000),estRate:2.98});
+    // 성장기업
+    if(d.business_career==='7년 이상'&&isGrowth)products.push({...smeFunds.innovation_growth_sme,estLimit:Math.min(limit*3,100000),estRate:3.48});
+    // 재도전
+    if(hasRecovery)products.push({...smeFunds.restart_sme,estLimit:Math.min(limit,80000),estRate:2.5});
+    // 기본: 신보
+    products.push({...smeFunds.kodit_general,estLimit:Math.min(limit*2,80000),estRate:3.0});
+  }
+  products=products.filter((p,i,a)=>a.findIndex(x=>x.name===p.name)===i).slice(0,5);
+
+  // Ensure minimum limit for non-overdue cases
+  const finalLimit=overdue?0:Math.max(limit,1000);
+  return{available:!overdue,limit:finalLimit,rate,probability:prob,products,bizCategory:biz,insights:ins.slice(0,5)};
+}
+
+// ===== Show Result =====
+function showResultScreen(){
+  const r=analysisResult,rc=document.getElementById('resultContent');
+  if(!r.available){
+    rc.innerHTML=`<div class="unavailable-content"><div class="unavailable-icon">😔</div><h3>현재 진행이 어렵습니다</h3><p>${userData.overdue==='있음'?'연체/체납이 있는 경우 정책자금 이용이\n제한될 수 있습니다.\n\n연체 해소 후 다시 시도해주세요.':'대출 규모가 매출 대비 높습니다.\n기존 부채를 일부 상환 후\n재신청을 권장드립니다.'}</p></div><div id="unavailHope" style="opacity:0;transform:translateY(16px);transition:all 0.6s cubic-bezier(0.22,1,0.36,1);"><div style="text-align:center;padding:24px 20px;margin-top:16px;background:linear-gradient(135deg,#EEF2FF,#E0E7FF);border-radius:16px;border:1.5px solid #A5B4FC;"><div style="font-size:32px;margin-bottom:12px;">💪</div><div style="font-size:18px;font-weight:700;color:#4338CA;margin-bottom:8px;line-height:1.5;">꼭 필요하다면 전문가의<br>도움을 받아보세요!</div><div style="font-size:15px;font-weight:600;color:#6366F1;">아직 포기하긴 이릅니다!</div><button class="btn-primary indigo" style="margin-top:16px;" onclick="openConsultModal()">📞 전문가 무료상담 받기</button></div></div>`;
+    setTimeout(()=>{const el=document.getElementById('unavailHope');if(el){el.style.opacity='1';el.style.transform='translateY(0)';}},3000);
+  } else {
+    const catColor=r.bizCategory==='소상공인'?'#10b981':'#1e1b4b';
+    const catIcon=r.bizCategory==='소상공인'?'🏪':'🏢';
+    const catDesc=r.bizCategory==='소상공인'?'상시근로자 수·매출 규모 기준으로 소상공인으로 분류되었습니다. 소진공, 지역신보, 서민금융진흥원 등의 자금을 이용할 수 있습니다.':'상시근로자 수·매출 규모 기준으로 중소기업으로 분류되었습니다. 중진공, 신용보증기금, 기술보증기금 등의 자금을 이용할 수 있습니다.';
+
+    // Gauge explanation
+    let gaugeExp='';
+    if(r.probability>=80)gaugeExp='신용점수·매출·부채 비율 등을 종합한 결과, 정책자금 승인 가능성이 매우 높습니다.';
+    else if(r.probability>=60)gaugeExp='전반적으로 양호한 조건이나 일부 항목 개선 시 더 유리한 조건을 받을 수 있습니다.';
+    else gaugeExp='일부 조건이 기준에 미치지 못합니다. 신용점수 개선이나 부채 축소를 권장합니다.';
+
+    // Limit & rate explanations
+    const limitExp=`연매출(${formatMoney(parseInt(userData.average_sales)||0)}) 대비 신용등급, 업종, 스마트상점 여부 등을 반영하여 산출한 예상 최대 한도입니다.`;
+    const rateExp=`NICE 신용점수(${userData.NICE||'-'}점) 기준 예상 적용 금리입니다. 실제 금리는 상품·심사에 따라 달라집니다.`;
+
+    // Products with explanations
+    const prodExpMap={
+      '일반경영안정자금':'대부분의 소상공인이 신청 가능한 기본 정책자금입니다. 운전자금으로 활용할 수 있습니다.',
+      '혁신성장촉진자금':'배달앱·키오스크 등 스마트 기술을 도입한 소상공인에게 우대 금리와 높은 한도를 제공합니다.',
+      '청년고용연계자금':'만 39세 이하 대표 또는 청년 고용 사업장에 우대 금리(2.98%)가 적용됩니다.',
+      '소공인특화자금':'제조업 10인 미만 소공인 전용 자금으로 시설·운전자금 모두 활용 가능합니다.',
+      '지역신용보증재단 보증':'신용보증서를 통해 은행 대출 시 담보를 대체할 수 있습니다. 보증료가 저렴합니다.',
+      '신용취약소상공인자금':'NCB 839점 이하 소상공인을 위한 전용 자금으로 일반 금융기관 이용이 어려운 분께 적합합니다.',
+      '미소금융':'저신용·저소득 소상공인을 위한 서민금융 상품입니다.',
+      '창업기반지원자금':'업력 7년 미만 창업기업 대상. 시설자금 10년, 운전자금 5년까지 지원합니다.',
+      '청년전용창업자금':'만 39세 이하, 업력 3년 미만 청년 창업자 전용 고정금리 상품입니다.',
+      '개발기술사업화자금':'특허·R&D 기반 기술을 보유한 기업이 사업화 추진 시 우대 지원합니다.',
+      '신용보증기금 보증':'신용보증서 발급으로 담보 없이 은행 대출을 받을 수 있습니다.',
+      '기술보증기금 보증':'기술 평가 기반 보증서를 발급하여 기술 중심 기업을 지원합니다.',
+      '제조현장스마트화':'스마트공장·자동화 설비 도입을 위한 시설자금을 최대 100억까지 지원합니다.',
+      '수출기업글로벌화':'수출 중소기업의 해외 진출을 위한 운전·시설자금을 지원합니다.',
+      '내수기업수출기업화':'수출 초보 기업의 첫 수출을 돕는 정책자금입니다.',
+      '혁신성장지원자금':'업력 7년 이상의 성장유망 기업에 시설투자 자금을 대규모 지원합니다.',
+      '재도전특별자금(일반형)':'재창업 초기단계 소상공인을 위한 자금으로, 성실실패 후 재도전을 지원합니다.',
+      '재도전재기지원보증':'성실실패 기업인의 재창업을 돕는 기술보증기금의 특례보증 상품입니다.',
+      '창업기업육성(Start-up NEST)':'신용보증기금이 창업 7년 미만 기업에 제공하는 전용 보증 프로그램입니다.',
+      '대환대출':'기존 고금리 대출을 저금리 정책자금으로 전환하는 상품입니다.'
     };
-    let selectedProduct = null;
-    let isSubmitting = false;
-    let currentStep = 0;
-    let questions = [];
-    let userData = {
-      company: '', business_type: '', industry: '', business_career: '',
-      employee_count: 0, patent_count: 0, has_machine: '', online_sales: '', offline_store: '',
-      kiosk: '', delivery: '', reservation: '', average_sales: 0,
-      sales_growth: '', mortgage_loan: 0, credit_loan: 0, KCB: 0, NICE: 0, overdue: '', recovery_history: ''
-    };
 
-    // ============ 분석 모달 함수 ============
-    function openAnalysisModal() {
-      const modal = document.getElementById('analysisModal');
-      if (modal) {
-        modal.classList.add('show');
-        document.body.style.overflow = 'hidden';
-      }
-    }
-
-    // ============ 모달 함수 ============
-    function openModal(modalId, productInfo = null) {
-      const modal = document.getElementById(modalId);
-      if (modal) {
-        modal.classList.add('show');
-        document.body.style.overflow = 'hidden';
-        
-        // 상품 정보가 있으면 표시
-        if (productInfo && modalId === 'consultModal') {
-          selectedProduct = productInfo;
-          const productInfoDiv = document.getElementById('modalProductInfo');
-          const productNameEl = document.getElementById('modalProductName');
-          const productDetailEl = document.getElementById('modalProductDetail');
-          
-          productInfoDiv.style.display = 'block';
-          productNameEl.textContent = `📌 ${productInfo.name} (${productInfo.org})`;
-          productDetailEl.textContent = `최대 ${formatLimit(productInfo.maxLimit)} | 금리 ${productInfo.minRate}%~`;
-        } else if (modalId === 'consultModal') {
-          selectedProduct = null;
-          document.getElementById('modalProductInfo').style.display = 'none';
-        }
-      }
-    }
-
-    function closeModal(modalId) {
-      const modal = document.getElementById(modalId);
-      if (modal) {
-        modal.classList.remove('show');
-        document.body.style.overflow = '';
-      }
-    }
-
-    // 모달 외부 클릭 시 닫기
-    document.addEventListener('click', function(e) {
-      if (e.target.classList.contains('modal-overlay')) {
-        e.target.classList.remove('show');
-        document.body.style.overflow = '';
-      }
+    const allProdsHtml=r.products.map((p,i)=>{
+      const exp=prodExpMap[p.name]||'';
+      return`<div class="r-rec"><div class="r-rec-head"><div class="r-rec-num">${i+1}</div><div><div class="r-rec-name">${p.name}</div><div class="r-rec-org">${p.org}</div></div></div><div class="r-rec-body"><div class="r-rec-row"><span class="r-rec-lbl">자금대상</span><span class="r-rec-val">${p.target}</span></div><div class="r-rec-row"><span class="r-rec-lbl">최대한도</span><span class="r-rec-val hl">${formatLimit(p.maxLimit)}</span></div><div class="r-rec-row"><span class="r-rec-lbl">최저금리</span><span class="r-rec-val">${p.minRate}%</span></div><div class="r-rec-row"><span class="r-rec-lbl">상환기간</span><span class="r-rec-val">${p.period}</span></div></div><div class="r-rec-estimate"><div class="r-rec-est-row"><span>예상 한도</span><strong>${formatLimit(p.estLimit)}</strong></div><div class="r-rec-est-row"><span>예상 금리</span><strong>${p.estRate.toFixed(2)}%</strong></div></div>${exp?`<p class="r-rec-explain">💡 ${exp}</p>`:''}<button class="r-rec-cta" onclick="openConsultModal()">📞 이 상품 무료자문상담</button></div>`;
     });
+    const visibleProds=allProdsHtml.slice(0,3).join('');
+    const hasMore=r.products.length>3;
+    const moreBtnHtml=hasMore?`<button class="more-btn" onclick="openMoreProducts()">+ 추천 자금 ${r.products.length-3}건 더보기</button>`:'';
+    // Store all products html for popup
+    window._allProdsHtml=allProdsHtml;
 
-    // ============ Google Sheets 전송 함수 ============
-    const SHEET_URL = 'https://script.google.com/macros/s/AKfycbzEWx8mkK4IJdDQHnbFaJPzxT8EzW9dcCLnsQRGWf0swJhb0IipF0FKzxPw8ejUM_uj/exec';
+    const prodsSection=`${visibleProds}${hasMore?`<p class="r-explain" style="text-align:center;">더 구체적인 조건에 따라, 한도는 다를 수 있어요!<br>전문가에게 무료 상담 받을 수 있어요!</p>`:''}\n${moreBtnHtml}`;
 
-    function submitConsultForm(e) {
-      e.preventDefault();
-      
-      if (isSubmitting) return;
-      
-      const name = document.getElementById('clientName').value.trim();
-      const phone1 = document.getElementById('phone1').value;
-      const phone2 = document.getElementById('phone2').value.trim();
-      const phone3 = document.getElementById('phone3').value.trim();
-      const agreePrivacy = document.getElementById('agreePrivacy').checked;
-      
-      // 유효성 검사
-      if (!name) { alert('성함을 입력해주세요.'); return; }
-      if (!phone2 || !phone3 || phone2.length < 3 || phone3.length < 4) {
-        alert('연락처를 정확히 입력해주세요.'); return;
-      }
-      if (!agreePrivacy) { alert('개인정보취급방침에 동의해주세요.'); return; }
-      
-      // 중복 제출 체크
-      const userKey = `submitted_${name}_${phone1}-${phone2}-${phone3}`;
-      if (localStorage.getItem(userKey)) {
-        alert('이미 해당 정보로 접수된 기록이 있습니다.');
-        return;
-      }
-      
-      isSubmitting = true;
-      const submitBtn = document.getElementById('submitBtn');
-      submitBtn.disabled = true;
-      submitBtn.textContent = '전송 중...';
-      
-      const now = new Date();
-      const phoneNumber = `${phone1}-${phone2}-${phone3}`;
-      
-      // 추천 상품 목록 (선택한 상품이 있으면 맨 앞에 표시)
-      let productNames = analysisResult.products ? analysisResult.products.map(p => p.name) : [];
-      if (selectedProduct) {
-        productNames = [selectedProduct.name + ' (선택)', ...productNames.filter(n => n !== selectedProduct.name)];
-      }
-      
-      // FormData 생성 - 스프레드시트 열 순서대로
-      const fd = new FormData();
-      fd.append('작업 날짜', now.toLocaleDateString('ko-KR'));
-      fd.append('작업 시간', now.toLocaleTimeString('ko-KR'));
-      fd.append('성함(이름)', name);
-      fd.append('연락처', phoneNumber);
-      fd.append('사업장명(상호)', userData.company || '');
-      fd.append('사업자 형태', userData.business_type || '');
-      fd.append('업종', userData.industry || '');
-      fd.append('사업자 업력', userData.business_career || '');
-      fd.append('상시 근로자 수', userData.employee_count || 0);
-      fd.append('기업 분류 (자동 판단)', analysisResult.bizCategory || '');
-      fd.append('특허 보유 수', userData.patent_count || 0);
-      fd.append('기계/설비 보유', userData.has_machine || '');
-      fd.append('온라인 판매 여부', userData.online_sales || '');
-      fd.append('오프라인 매장', userData.offline_store || '');
-      fd.append('키오스크 사용', userData.kiosk || '');
-      fd.append('배달앱 사용', userData.delivery || '');
-      fd.append('숙박앱 사용', userData.reservation || '');
-      fd.append('연평균 매출액', userData.average_sales ? `${userData.average_sales}만원` : '');
-      fd.append('2년간 10%이상 성장', userData.sales_growth || '');
-      fd.append('담보대출 잔액', userData.mortgage_loan ? `${userData.mortgage_loan}만원` : '0');
-      fd.append('신용대출 잔액', userData.credit_loan ? `${userData.credit_loan}만원` : '0');
-      fd.append('KCB 신용점수', userData.KCB || '');
-      fd.append('NICE 신용점수', userData.NICE || '');
-      fd.append('연체/체납 여부', userData.overdue || '');
-      fd.append('개인회생 파산 신용회복 이력', userData.recovery_history || '');
-      fd.append('예상 대출 한도', analysisResult.limit ? formatLimit(analysisResult.limit) : '');
-      fd.append('예상 금리', analysisResult.rate ? `${analysisResult.rate}%` : '');
-      fd.append('추천 상품 목록', productNames.join(', '));
-      fd.append('분석 일시', now.toLocaleString('ko-KR'));
-      fd.append('개인정보수집동의', '동의');
-      fd.append('유입경로', sessionStorage.getItem('first_referrer') || 'UNKNOWN');
-      
-      fetch(SHEET_URL, {
-        method: 'POST',
-        body: fd
-      })
-      .then(() => {
-        localStorage.setItem(userKey, 'submitted');
-        closeModal('consultModal');
-        openModal('successModal');
-        // 폼 리셋
-        document.getElementById('consultForm').reset();
-      })
-      .catch(err => {
-        console.error('전송 오류:', err);
-        alert('오류가 발생했습니다. 다시 시도해주세요.');
-      })
-      .finally(() => {
-        isSubmitting = false;
-        submitBtn.disabled = false;
-        submitBtn.textContent = '정책자금 상담 신청하기';
-      });
-    }
+    // Insights with sub-explanations
+    const insHtml=r.insights.map(i=>{
+      let sub='';
+      if(i.text.includes('소진공'))sub='소상공인시장진흥공단(소진공)에서 직접·대리대출 방식으로 자금을 지원합니다.';
+      if(i.text.includes('중진공'))sub='중소벤처기업진흥공단(중진공)의 직접대출·이차보전 방식으로 지원합니다.';
+      if(i.text.includes('신용등급 우수'))sub='KCB·NICE 신용점수가 모두 상위 구간에 해당하여 최저 금리 적용이 가능합니다.';
+      if(i.text.includes('스마트상점'))sub='배달앱·키오스크·온라인판매 등 디지털 도구를 활용하는 사업장으로 인정됩니다.';
+      if(i.text.includes('특허'))sub='보유 특허를 기반으로 기술사업화자금, 기보 보증 등 기술금융 우대를 받을 수 있습니다.';
+      if(i.text.includes('매출 성장'))sub='최근 2년간 10% 이상 매출이 성장한 기업에 금리 인하 혜택이 적용됩니다.';
+      if(i.text.includes('설비'))sub='보유 설비를 담보로 활용하거나 시설자금 대출을 받을 수 있습니다.';
+      return`<div class="r-insight"><span class="r-insight-icon">${i.icon}</span><div class="r-insight-text">${i.text}${sub?`<div class="r-insight-sub">${sub}</div>`:''}</div></div>`;
+    }).join('');
 
-    // ============ 분석 신청 폼 제출 ============
-    function submitAnalysisForm(e) {
-      e.preventDefault();
-      
-      if (isSubmitting) return;
-      
-      const name = document.getElementById('analysisName').value.trim();
-      const phone1 = document.getElementById('analysisPhone1').value;
-      const phone2 = document.getElementById('analysisPhone2').value.trim();
-      const phone3 = document.getElementById('analysisPhone3').value.trim();
-      const agreePrivacy = document.getElementById('analysisAgreePrivacy').checked;
-      
-      if (!name || !phone2 || !phone3) {
-        alert('모든 필수 항목을 입력해주세요.');
-        return;
-      }
-      
-      if (!agreePrivacy) {
-        alert('개인정보 수집·이용에 동의해주세요.');
-        return;
-      }
-      
-      if (phone2.length < 3 || phone3.length < 4) {
-        alert('연락처를 정확히 입력해주세요.');
-        return;
-      }
-      
-      // 중복 체크
-      const phoneNumber = `${phone1}-${phone2}-${phone3}`;
-      const userKey = `analysis_${phoneNumber}`;
-      if (localStorage.getItem(userKey)) {
-        alert('이미 분석 신청이 완료되었습니다.\n상담사가 곧 연락드릴 예정입니다.');
-        return;
-      }
-      
-      isSubmitting = true;
-      const submitBtn = document.getElementById('analysisSubmitBtn');
-      submitBtn.disabled = true;
-      submitBtn.textContent = '신청 중...';
-      
-      const fd = new FormData();
-      const now = new Date();
-      
-      // 스프레드시트 열 순서대로 전송
-      fd.append('작업 날짜', now.toLocaleDateString('ko-KR'));
-      fd.append('작업 시간', now.toLocaleTimeString('ko-KR'));
-      fd.append('성함(이름)', name);
-      fd.append('연락처', phoneNumber);
-      fd.append('사업장명(상호)', userData.company || '');
-      fd.append('사업자 형태', userData.business_type || '');
-      fd.append('업종', userData.industry || '');
-      fd.append('사업자 업력', userData.business_career || '');
-      fd.append('상시 근로자 수', userData.employee_count || 0);
-      fd.append('기업 분류 (자동 판단)', '분석 전 신청');
-      fd.append('특허 보유 수', userData.patent_count || 0);
-      fd.append('기계/설비 보유', userData.has_machine || '');
-      fd.append('온라인 판매 여부', userData.online_sales || '');
-      fd.append('오프라인 매장', userData.offline_store || '');
-      fd.append('키오스크 사용', userData.kiosk || '');
-      fd.append('배달앱 사용', userData.delivery || '');
-      fd.append('숙박앱 사용', userData.reservation || '');
-      fd.append('연평균 매출액', userData.average_sales ? `${userData.average_sales}만원` : '');
-      fd.append('2년간 10%이상 성장', userData.sales_growth || '');
-      fd.append('담보대출 잔액', userData.mortgage_loan ? `${userData.mortgage_loan}만원` : '0');
-      fd.append('신용대출 잔액', userData.credit_loan ? `${userData.credit_loan}만원` : '0');
-      fd.append('KCB 신용점수', userData.KCB || '');
-      fd.append('NICE 신용점수', userData.NICE || '');
-      fd.append('연체/체납 여부', userData.overdue || '');
-      fd.append('개인회생 파산 신용회복 이력', userData.recovery_history || '');
-      fd.append('예상 대출 한도', '상담사 분석 예정');
-      fd.append('예상 금리', '상담사 분석 예정');
-      fd.append('추천 상품 목록', '상담사 분석 예정');
-      fd.append('분석 일시', now.toLocaleString('ko-KR'));
-      fd.append('개인정보수집동의', '동의');
-      fd.append('유입경로', sessionStorage.getItem('first_referrer') || 'UNKNOWN');
-      
-      fetch(SHEET_URL, {
-        method: 'POST',
-        body: fd
-      })
-      .then(() => {
-        localStorage.setItem(userKey, 'submitted');
-        closeModal('analysisModal');
-        
-        // 완료 메시지 표시
-        const chatMessages = document.getElementById('chatMessages');
-        const wrapper = document.createElement('div');
-        wrapper.className = 'message-wrapper bot';
-        wrapper.innerHTML = `
-          <div class="bot-avatar">🤖</div>
-          <div class="message-content">
-            <div class="section-badge">신청 완료</div>
-            <div class="message-bubble bot">
-              <div class="message-text">
-                <strong>✅ 분석 신청이 완료되었습니다!</strong><br><br>
-                ${name}님, 감사합니다.<br><br>
-                전문 상담사가 <strong>빠른 시간 내에</strong><br>
-                <strong>${phoneNumber}</strong>로 연락드릴 예정입니다.<br><br>
-                📞 맞춤 정책자금 분석 결과와<br>
-                무료 자문 상담을 받아보세요!
-              </div>
-              <button class="restart-btn" onclick="resetChat()" style="margin-top:16px;">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15" />
-                </svg>
-                <span>처음부터 다시하기</span>
-              </button>
-            </div>
-            <span class="message-time">${getTime()}</span>
-          </div>
-        `;
-        chatMessages.appendChild(wrapper);
-        scrollToBottom();
-        
-        // 폼 리셋
-        document.getElementById('analysisForm').reset();
-      })
-      .catch(err => {
-        alert('오류가 발생했습니다. 다시 시도해주세요.');
-      })
-      .finally(() => {
-        isSubmitting = false;
-        submitBtn.disabled = false;
-        submitBtn.textContent = '✅ 자금분석결과 · 무료자문상담 받기';
-      });
-    }
+    // Input summary
+    const summaryPairs=[
+      ['사업장명',userData.company||'-'],['사업자형태',userData.business_type||'-'],
+      ['업종',userData.industry||'-'],['업력',userData.business_career||'-'],
+      ['창업시기',userData.startup_date||'-'],['근로자수',(userData.employee_count||0)+'명'],
+      ['연매출',userData.average_sales?formatMoney(parseInt(userData.average_sales)):'-'],
+      ['담보대출',userData.mortgage_loan?formatMoney(parseInt(userData.mortgage_loan)):'없음'],
+      ['신용대출',userData.credit_loan?formatMoney(parseInt(userData.credit_loan)):'없음'],
+      ['KCB',(userData.KCB||'-')+'점'],['NICE',(userData.NICE||'-')+'점'],
+      ['연체여부',userData.overdue||'-'],['연체내용',userData.overdue_detail||'-'],
+      ['회생이력',userData.recovery_history||'-'],['회생내용',userData.recovery_detail||'-']
+    ];
+    const summaryHtml=summaryPairs.map(([l,v])=>`<div class="input-summary-cell"><div class="input-summary-cell-label">${l}</div><div class="input-summary-cell-value">${v}</div></div>`).join('');
 
-    // 전화번호 입력 시 숫자만 허용
-    document.addEventListener('DOMContentLoaded', function() {
-      ['phone2', 'phone3', 'analysisPhone2', 'analysisPhone3'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) {
-          el.addEventListener('input', function() {
-            this.value = this.value.replace(/[^0-9]/g, '');
-          });
-        }
-      });
-    });
-
-    // ============ 데이터 정의 ============
-    const industryQuestions = {
-      '제조업': ['patent', 'machine'],
-      '건설업': ['patent', 'machine'],
-      '도소매업': ['online', 'offline', 'kiosk'],
-      '요식업': ['delivery', 'kiosk'],
-      '숙박업': ['reservation', 'kiosk'],
-      'SW/IT업': ['patent'],
-      '서비스업': ['patent'],
-      '운송업': [],
-      '기타': []
-    };
-
-    // 정책자금 상품 데이터베이스
-    // ============ 소상공인 정책자금 (소진공, 지역신보, 서민금융진흥원) ============
-    const smallBizFunds = {
-      general_stable: {
-        name: '일반경영안정자금',
-        org: '소진공',
-        target: '소상공인 (업력 무관)',
-        maxLimit: 7000,
-        minRate: 3.58,
-        period: '5년(2년 거치)',
-        method: '대리대출',
-        desc: '소상공인 경영안정 운전자금'
-      },
-      emergency_disaster: {
-        name: '긴급경영안정자금(재해)',
-        org: '소진공',
-        target: '재해피해 소상공인',
-        maxLimit: 10000,
-        minRate: 2.0,
-        period: '5년(2년 거치)',
-        method: '직접/대리대출',
-        desc: '자연재해·사회재난 피해 소상공인 긴급지원'
-      },
-      emergency_crisis: {
-        name: '긴급경영안정자금(경영애로)',
-        org: '소진공',
-        target: '일시적 경영애로 소상공인',
-        maxLimit: 7000,
-        minRate: 2.98,
-        period: '5년(2년 거치)',
-        method: '직접/대리대출',
-        desc: '매출 10% 이상 감소 소상공인 지원'
-      },
-      disabled: {
-        name: '장애인기업지원자금',
-        org: '소진공',
-        target: '장애인 소상공인',
-        maxLimit: 10000,
-        minRate: 2.0,
-        period: '7년(2년 거치)',
-        method: '대리대출',
-        desc: '장애인복지카드 소지 소상공인 우대'
-      },
-      low_credit: {
-        name: '신용취약소상공인자금',
-        org: '소진공',
-        target: 'NCB 839점 이하 소상공인',
-        maxLimit: 3000,
-        minRate: 4.58,
-        period: '5년(2년 거치)',
-        method: '직접대출',
-        desc: '중·저신용 소상공인 자금지원'
-      },
-      restart_hope: {
-        name: '재도전특별자금(희망형)',
-        org: '소진공',
-        target: '희망리턴패키지 수혜 소상공인',
-        maxLimit: 10000,
-        minRate: 3.58,
-        period: '5년(2년 거치)',
-        method: '직접대출',
-        desc: '재창업 준비 소상공인 지원'
-      },
-      restart_general: {
-        name: '재도전특별자금(일반형)',
-        org: '소진공',
-        target: '재창업/채무조정 소상공인',
-        maxLimit: 7000,
-        minRate: 4.58,
-        period: '5년(2년 거치)',
-        method: '직접대출',
-        desc: '재창업 초기단계 소상공인 지원'
-      },
-      youth_employ: {
-        name: '청년고용연계자금',
-        org: '소진공',
-        target: '청년대표 또는 청년고용 소상공인',
-        maxLimit: 7000,
-        minRate: 2.98,
-        period: '5년(2년 거치)',
-        method: '대리대출',
-        desc: '만39세 이하 청년 소상공인 지원'
-      },
-      small_manufacturer: {
-        name: '소공인특화자금',
-        org: '소진공',
-        target: '제조업 소공인 (10인 미만)',
-        maxLimit: 50000,
-        minRate: 3.58,
-        period: '운전5년/시설8년',
-        method: '대리대출',
-        desc: '숙련기술 기반 제조업 소공인 지원'
-      },
-      innovation_growth: {
-        name: '혁신성장촉진자금',
-        org: '소진공',
-        target: '수출/매출성장/스마트 소상공인',
-        maxLimit: 100000,
-        minRate: 3.38,
-        period: '운전5년/시설8년',
-        method: '직접대출',
-        desc: '혁신형 소상공인 성장기반 지원'
-      },
-      matching_invest: {
-        name: '민간투자연계형 매칭융자',
-        org: '소진공',
-        target: '민간투자 유치 소상공인',
-        maxLimit: 50000,
-        minRate: 3.38,
-        period: '8년(3년 거치)',
-        method: '직접대출',
-        desc: '민간투자금 최대 5배 매칭'
-      },
-      refinance: {
-        name: '대환대출',
-        org: '소진공',
-        target: '고금리 대출 보유 소상공인',
-        maxLimit: 5000,
-        minRate: 4.5,
-        period: '10년(2년 거치)',
-        method: '직접대출',
-        desc: '고금리 대출 저금리 전환'
-      },
-      local_guarantee: {
-        name: '지역신용보증재단 보증',
-        org: '지역신보',
-        target: '소기업·소상공인',
-        maxLimit: 80000,
-        minRate: 3.0,
-        period: '보증기간 1년~5년',
-        method: '보증서부 대출',
-        desc: '신용보증서 발급으로 대출 지원'
-      },
-      miso_finance: {
-        name: '미소금융',
-        org: '서민금융진흥원',
-        target: 'NCB 749점 이하 소상공인',
-        maxLimit: 7000,
-        minRate: 4.5,
-        period: '5년(1년 거치)',
-        method: '직접대출',
-        desc: '저신용·저소득 소상공인 지원'
-      }
-    };
-
-    // ============ 중소기업 정책자금 (중진공, 신용보증기금, 기술보증기금) ============
-    const smeFunds = {
-      startup_base: {
-        name: '창업기반지원자금',
-        org: '중진공',
-        target: '업력 7년 미만 창업기업',
-        maxLimit: 600000,
-        minRate: 2.68,
-        period: '시설10년/운전5년',
-        method: '직접/대리대출',
-        desc: '창업초기 기업 종합 자금지원'
-      },
-      youth_startup: {
-        name: '청년전용창업자금',
-        org: '중진공',
-        target: '만39세 이하, 업력 3년 미만',
-        maxLimit: 20000,
-        minRate: 2.5,
-        period: '시설10년/운전6년',
-        method: '직접대출',
-        desc: '청년 창업자 고정금리 우대'
-      },
-      tech_commercialize: {
-        name: '개발기술사업화자금',
-        org: '중진공',
-        target: '특허/R&D 보유 기술기업',
-        maxLimit: 600000,
-        minRate: 2.98,
-        period: '시설10년/운전5년',
-        method: '직접대출',
-        desc: '기술사업화 추진기업 지원'
-      },
-      export_domestic: {
-        name: '내수기업수출기업화',
-        org: '중진공',
-        target: '수출 10만불 미만 기업',
-        maxLimit: 50000,
-        minRate: 2.98,
-        period: '운전5년(2년 거치)',
-        method: '직접대출',
-        desc: '수출 초보기업 육성 지원'
-      },
-      export_global: {
-        name: '수출기업글로벌화',
-        org: '중진공',
-        target: '수출 10만불 이상 기업',
-        maxLimit: 600000,
-        minRate: 3.18,
-        period: '시설10년/운전5년',
-        method: '직접/이차보전',
-        desc: '수출 중소기업 글로벌화 지원'
-      },
-      innovation_growth_sme: {
-        name: '혁신성장지원자금',
-        org: '중진공',
-        target: '업력 7년 이상 성장기업',
-        maxLimit: 1000000,
-        minRate: 3.48,
-        period: '시설10년/운전5년',
-        method: '직접/대리/이차보전',
-        desc: '성장유망 중소기업 시설투자 지원'
-      },
-      net_zero: {
-        name: 'Net-Zero 유망기업지원',
-        org: '중진공',
-        target: '탄소중립·그린 기술기업',
-        maxLimit: 600000,
-        minRate: 2.98,
-        period: '시설10년/운전5년',
-        method: '직접/대리/이차보전',
-        desc: '그린분야 기술사업화 지원'
-      },
-      smart_factory: {
-        name: '제조현장스마트화',
-        org: '중진공',
-        target: '스마트공장 도입 기업',
-        maxLimit: 1000000,
-        minRate: 2.98,
-        period: '시설10년/운전5년',
-        method: '직접/대리/이차보전',
-        desc: '스마트공장·자동화 시설 지원'
-      },
-      business_change: {
-        name: '사업전환자금',
-        org: '중진공',
-        target: '사업전환계획 승인기업',
-        maxLimit: 1000000,
-        minRate: 3.18,
-        period: '시설10년/운전6년',
-        method: '직접/대리대출',
-        desc: '업종전환·신사업 추진기업 지원'
-      },
-      emergency_sme: {
-        name: '긴급경영안정자금',
-        org: '중진공',
-        target: '재해·경영위기 중소기업',
-        maxLimit: 100000,
-        minRate: 1.9,
-        period: '운전5년(2년 거치)',
-        method: '직접대출',
-        desc: '자연재해·사회재난 피해기업 긴급지원'
-      },
-      kodit_general: {
-        name: '신용보증기금 보증',
-        org: '신용보증기금',
-        target: '중소기업 전반',
-        maxLimit: 300000,
-        minRate: 3.0,
-        period: '보증기간 1년~3년',
-        method: '보증서부 대출',
-        desc: '신용보증서 발급으로 담보 대체'
-      },
-      kibo_tech: {
-        name: '기술보증기금 보증',
-        org: '기술보증기금',
-        target: '기술력 보유 중소기업',
-        maxLimit: 300000,
-        minRate: 2.8,
-        period: '보증기간 1년~3년',
-        method: '보증서부 대출',
-        desc: '기술평가 기반 보증서 발급'
-      },
-      startup_nest: {
-        name: '창업기업육성(Start-up NEST)',
-        org: '신용보증기금',
-        target: '업력 7년 미만 창업기업',
-        maxLimit: 100000,
-        minRate: 2.5,
-        period: '보증기간 최대 3년',
-        method: '보증서부 대출',
-        desc: '창업기업 전용 보증 프로그램'
-      },
-      restart_sme: {
-        name: '재도전재기지원보증',
-        org: '기술보증기금',
-        target: '성실실패 재창업 기업',
-        maxLimit: 80000,
-        minRate: 2.5,
-        period: '보증기간 최대 5년',
-        method: '보증서부 대출',
-        desc: '재창업 기업 특례보증'
-      }
-    };
-
-    // 소상공인/중소기업 판단 함수
-    function isSmallBusiness(data) {
-      const manufacturingIndustries = ['제조업', '건설업', '운송업'];
-      const employeeLimit = manufacturingIndustries.includes(data.industry) ? 10 : 5;
-      
-      // 상시근로자 수 기준
-      if (data.employee_count >= employeeLimit) return false;
-      
-      // 매출액 기준 (업종별 소기업 기준의 30% 미만이면 소상공인으로 가정)
-      // 간이과세자는 무조건 소상공인
-      if (data.average_sales < 10000) return true; // 1억 미만은 소상공인
-      if (data.average_sales >= 100000) return false; // 10억 이상은 중소기업급
-      
-      return true; // 기본적으로 소상공인으로 분류
-    }
-
-    // ============ 질문 생성 ============
-    function getQuestions(industry) {
-      const base = [
-        { key: 'start', text: '안녕하세요! 👋\n\n정책자금 한도·금리·상품 추천 서비스입니다.\n\n2025년 정부 정책금융 지원 규모 26.5조 원!\n최적의 정책자금을 찾아드릴게요.', type: 'button', options: ['분석 시작하기'], section: 'intro' },
-        { key: 'company', text: '사업장명(상호)을 입력해주세요.', type: 'text', placeholder: '예: 바름연구소', section: '사업자 정보' },
-        { key: 'business_type', text: '사업자 형태를 선택해주세요.', type: 'choice', options: ['개인사업자', '법인사업자'], section: '사업자 정보' },
-        { key: 'industry', text: '업종을 선택해주세요.', type: 'choice', options: ['제조업', '도소매업', '건설업', '요식업', '숙박업', '운송업', 'SW/IT업', '서비스업', '기타'], section: '사업자 정보' },
-        { key: 'business_career', text: '사업자 업력을 선택해주세요.', type: 'choice', options: ['1년 미만', '3년 미만', '5년 미만', '7년 미만', '7년 이상'], section: '사업자 정보' },
-        { key: 'employee_count', text: '상시 근로자 수를 입력해주세요.\n(대표자 제외, 일용직 제외)\n\n💡 5인 미만: 소상공인 / 5인 이상: 중소기업', type: 'number', placeholder: '예: 3', section: '사업자 정보' }
-      ];
-
-      const industrySpecific = [];
-      const fields = industryQuestions[industry] || [];
-      
-      if (fields.includes('patent')) industrySpecific.push({ key: 'patent_count', text: '보유 중인 특허 수를 입력해주세요.\n\n💡 특허 보유 시 기술사업화자금 우대!', type: 'number', placeholder: '없으면 0', section: '업종별 정보', icon: '📜' });
-      if (fields.includes('machine')) industrySpecific.push({ key: 'has_machine', text: '기계/설비 보유 여부를 선택해주세요.\n\n💡 설비 보유 시 담보 활용 가능!', type: 'choice', options: ['보유함', '보유 안함'], section: '업종별 정보', icon: '⚙️' });
-      if (fields.includes('online')) industrySpecific.push({ key: 'online_sales', text: '온라인 판매를 하시나요?\n\n💡 온라인 판매 시 스마트상점 우대!', type: 'choice', options: ['예', '아니오'], section: '업종별 정보', icon: '🛒' });
-      if (fields.includes('offline')) industrySpecific.push({ key: 'offline_store', text: '오프라인 매장을 보유하고 계신가요?', type: 'choice', options: ['보유함', '보유 안함'], section: '업종별 정보', icon: '🏪' });
-      if (fields.includes('kiosk')) industrySpecific.push({ key: 'kiosk', text: '키오스크를 사용하시나요?\n\n💡 키오스크 사용 시 스마트소상공인 우대!', type: 'choice', options: ['사용함', '사용 안함'], section: '업종별 정보', icon: '🖥️' });
-      if (fields.includes('delivery')) industrySpecific.push({ key: 'delivery', text: '배달앱을 사용하시나요?\n\n💡 배달앱 활용 시 한도 60%까지 확대!', type: 'choice', options: ['사용함', '사용 안함'], section: '업종별 정보', icon: '🛵' });
-      if (fields.includes('reservation')) industrySpecific.push({ key: 'reservation', text: '숙박앱(야놀자, 여기어때 등)을 사용하시나요?', type: 'choice', options: ['사용함', '사용 안함'], section: '업종별 정보', icon: '🏨' });
-
-      const remaining = [
-        { key: 'average_sales', text: '1년 평균 매출액을 입력해주세요.\n(단위: 만원)\n\n💡 매출이 높을수록 한도가 커집니다!', type: 'number', placeholder: '예: 50000 (5억원)', section: '매출 정보' },
-        { key: 'sales_growth', text: '최근 2년간 매출이 10% 이상 성장했나요?\n\n💡 성장기업은 금리 0.2%p 우대!', type: 'choice', options: ['예', '아니오'], section: '매출 정보' },
-        { key: 'mortgage_loan', text: '현재 담보대출 잔액을 입력해주세요.\n(단위: 만원)', type: 'number', placeholder: '없으면 0', section: '대출 정보' },
-        { key: 'credit_loan', text: '현재 신용대출 잔액을 입력해주세요.\n(단위: 만원)\n\n💡 기존 부채가 적을수록 승인 확률 UP!', type: 'number', placeholder: '없으면 0', section: '대출 정보' },
-        { key: 'KCB', text: 'KCB 신용점수를 입력해주세요.\n\n💡 모르시면 카카오뱅크 앱이나 토스에서\n쉽게 확인 가능해요!', type: 'number', placeholder: '예: 750', section: '신용 정보' },
-        { key: 'NICE', text: 'NICE 신용점수를 입력해주세요.\n\n💡 모르시면 카카오뱅크 앱이나 토스에서\n쉽게 확인 가능해요!', type: 'number', placeholder: '예: 800', section: '신용 정보' },
-        { key: 'overdue', text: '현재 연체 또는 체납이 있으신가요?\n\n⚠️ 연체 시 정책자금 이용이 불가합니다', type: 'choice', options: ['없음', '있음'], section: '신용 정보' },
-        { key: 'recovery_history', text: '개인회생·파산·신용회복 이력이 있으신가요?\n\n💡 과정 이후 6회차 이상 성실납입 중이면\n정책자금 이용이 가능합니다', type: 'choice', options: ['없음', '있음'], section: '신용 정보' }
-      ];
-
-      return [...base, ...industrySpecific, ...remaining];
-    }
-
-    // ============ 유틸리티 함수 ============
-    function getTime() {
-      const now = new Date();
-      return `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-    }
-
-    function formatMoney(num) {
-      if (num >= 10000) {
-        const 억 = Math.floor(num / 10000);
-        const 만 = num % 10000;
-        return 만 > 0 ? `${억}억 ${만.toLocaleString()}만원` : `${억}억원`;
-      }
-      return `${num.toLocaleString()}만원`;
-    }
-
-    function formatNumberInput(value) {
-      const num = value.replace(/[^0-9]/g, '');
-      return num ? parseInt(num).toLocaleString() : '';
-    }
-
-    function scrollToBottom() {
-      const chatMessages = document.getElementById('chatMessages');
-      setTimeout(() => { chatMessages.scrollTop = chatMessages.scrollHeight; }, 100);
-    }
-
-    function updateProgress() {
-      const progress = Math.min((currentStep / (questions.length - 1)) * 100, 100);
-      document.getElementById('progressFill').style.width = `${progress}%`;
-      document.getElementById('progressText').textContent = `${Math.round(progress)}%`;
-      if (currentStep > 0) document.getElementById('headerProgress').classList.add('active');
-    }
-
-    // ============ 메시지 렌더링 ============
-    function addBotMessage(question, showSection = true) {
-      const chatMessages = document.getElementById('chatMessages');
-      const prevSection = chatMessages.lastElementChild?.dataset?.section;
-      
-      const wrapper = document.createElement('div');
-      wrapper.className = 'message-wrapper bot';
-      wrapper.dataset.section = question.section;
-
-      let sectionBadge = '';
-      if (showSection && question.section && question.section !== 'intro' && question.section !== 'loading' && prevSection !== question.section) {
-        sectionBadge = `<div class="section-badge">${question.section}</div>`;
-      }
-
-      let iconHtml = question.icon ? `<div class="message-icon">${question.icon}</div>` : '';
-      let buttonsHtml = '';
-
-      if (question.type === 'button' && question.options) {
-        buttonsHtml = `<button class="start-btn" onclick="handleSubmit('${question.options[0]}')">${question.options[0]}<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7" /></svg></button>`;
-      } else if (question.type === 'choice' && question.options) {
-        buttonsHtml = `<div class="choice-buttons">${question.options.map(opt => `<button class="choice-btn" onclick="handleSubmit('${opt}')">${opt}</button>`).join('')}</div>`;
-      }
-      
-      // 분석하기 버튼 추가
-      if (question.showAnalysisBtn) {
-        buttonsHtml = `<button class="analysis-btn" onclick="openAnalysisModal()">
-          <span>📊 내 업장에 맞는 정책자금 분석하기</span>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M5 12h14M12 5l7 7-7 7"/>
-          </svg>
-        </button>`;
-      }
-
-      wrapper.innerHTML = `
-        <div class="bot-avatar">🤖</div>
-        <div class="message-content">
-          ${sectionBadge}
-          <div class="message-bubble bot">
-            ${iconHtml}
-            <div class="message-text">${question.text}</div>
-            ${buttonsHtml}
-          </div>
-          <span class="message-time">${getTime()}</span>
+    rc.innerHTML=`
+      <!-- 승인 가능성 히어로 (축하 배경) -->
+      <div class="prob-hero-section">
+        <div class="prob-confetti-wrap">
+          <div class="confetti c1"></div><div class="confetti c2"></div><div class="confetti c3"></div>
+          <div class="confetti c4"></div><div class="confetti c5"></div><div class="confetti c6"></div>
+          <div class="confetti c7"></div><div class="confetti c8"></div><div class="confetti c9"></div>
+          <div class="confetti c10"></div><div class="confetti c11"></div><div class="confetti c12"></div>
         </div>
-      `;
-
-      chatMessages.appendChild(wrapper);
-      scrollToBottom();
-
-      const chatInput = document.getElementById('chatInput');
-      const userInput = document.getElementById('userInput');
-      
-      if (question.type === 'text' || question.type === 'number') {
-        chatInput.classList.add('active');
-        userInput.placeholder = question.placeholder || '여기에 입력하세요';
-        userInput.dataset.type = question.type;
-        userInput.value = '';
-        userInput.focus();
-      } else {
-        chatInput.classList.remove('active');
-      }
-    }
-
-    function addUserMessage(text) {
-      const chatMessages = document.getElementById('chatMessages');
-      const wrapper = document.createElement('div');
-      wrapper.className = 'message-wrapper user';
-      wrapper.innerHTML = `<div class="message-content"><div class="message-bubble user"><div class="message-text">${text}</div></div><span class="message-time">${getTime()}</span></div>`;
-      chatMessages.appendChild(wrapper);
-      scrollToBottom();
-    }
-
-    function showTyping() {
-      const chatMessages = document.getElementById('chatMessages');
-      const wrapper = document.createElement('div');
-      wrapper.className = 'message-wrapper bot';
-      wrapper.id = 'typingIndicator';
-      wrapper.innerHTML = `<div class="bot-avatar">🤖</div><div class="message-content"><div class="message-bubble bot"><div class="typing-dots"><span></span><span></span><span></span></div></div></div>`;
-      chatMessages.appendChild(wrapper);
-      scrollToBottom();
-    }
-
-    function hideTyping() {
-      const typing = document.getElementById('typingIndicator');
-      if (typing) typing.remove();
-    }
-
-    // ============ 제출 처리 ============
-    function handleSubmit(value) {
-      if (currentStep >= questions.length) return;
-      
-      const question = questions[currentStep];
-      let displayValue = value;
-      let dataValue = value;
-
-      if (question.key === 'start') {
-        addUserMessage('시작할게요 ✨');
-        currentStep++;
-        updateProgress();
-        showTyping();
-        setTimeout(() => { hideTyping(); addBotMessage(questions[currentStep]); }, 600);
-        return;
-      }
-
-      if (question.type === 'number') {
-        const num = parseInt(value.toString().replace(/,/g, ''));
-        if (isNaN(num) || num < 0) {
-          showTyping();
-          setTimeout(() => { hideTyping(); addBotMessage({ text: '숫자를 정확히 입력해주세요 😊', section: 'error' }, false); }, 400);
-          return;
-        }
-        dataValue = num;
-        if (['average_sales', 'credit_loan', 'mortgage_loan'].includes(question.key)) displayValue = formatMoney(num);
-        else if (['NICE', 'KCB'].includes(question.key)) displayValue = `${num}점`;
-        else if (question.key === 'patent_count') displayValue = `${num}건`;
-      }
-
-      if (question.type === 'text' && !value.trim()) {
-        showTyping();
-        setTimeout(() => { hideTyping(); addBotMessage({ text: '내용을 입력해주세요 😊', section: 'error' }, false); }, 400);
-        return;
-      }
-
-      disableCurrentChoices();
-      addUserMessage(displayValue);
-      userData[question.key] = dataValue;
-
-      if (question.key === 'industry') questions = getQuestions(value);
-
-      currentStep++;
-      updateProgress();
-
-      if (currentStep < questions.length) {
-        showTyping();
-        setTimeout(() => { hideTyping(); addBotMessage(questions[currentStep]); }, 600);
-      } else {
-        showTyping();
-        setTimeout(() => {
-          hideTyping();
-          // 바로 간단한 분석 결과 표시 (성함/연락처 없이)
-          showResult();
-          document.getElementById('chatInput').classList.remove('active');
-          document.getElementById('headerProgress').classList.remove('active');
-        }, 800);
-      }
-
-      document.getElementById('userInput').value = '';
-      document.getElementById('sendBtn').disabled = true;
-    }
-
-    function disableCurrentChoices() {
-      const chatMessages = document.getElementById('chatMessages');
-      const lastBotMessage = chatMessages.querySelector('.message-wrapper.bot:last-of-type');
-      if (lastBotMessage) {
-        const buttons = lastBotMessage.querySelectorAll('.choice-btn, .start-btn');
-        buttons.forEach(btn => { btn.disabled = true; btn.style.opacity = '0.5'; btn.style.cursor = 'default'; btn.onclick = null; });
-      }
-    }
-
-    // ============ 고급 계산 로직 ============
-    
-    // 금리 계산 (NICE 점수 기반)
-    function calculateRate(nice) {
-      if (nice <= 650) return 4.3;
-      if (nice >= 850) return 3.1;
-      return parseFloat((4.3 - ((nice - 650) / 200) * 1.2).toFixed(2));
-    }
-
-    // 승인 확률 계산
-    function calculateProbability(data) {
-      const { average_sales, credit_loan, mortgage_loan, NICE, KCB, overdue, business_career } = data;
-      
-      if (overdue === '있음') return 0;
-      
-      let score = 93;
-      
-      // 매출 대비 부채 비율
-      const totalDebt = credit_loan + mortgage_loan;
-      const debtRatio = average_sales > 0 ? totalDebt / average_sales : 1;
-      score -= debtRatio * 25;
-      
-      // 매출 규모 보너스
-      if (average_sales > 0) score += Math.log10(average_sales) * 2;
-      
-      // 신용 점수 반영
-      const avgCredit = (NICE + KCB) / 2;
-      if (avgCredit >= 800) score += 5;
-      else if (avgCredit < 700) score -= 10;
-      
-      // 업력 반영
-      if (business_career === '1년 미만') score -= 5;
-      else if (business_career === '7년 이상' && debtRatio > 1) score -= 15;
-      
-      return Math.max(10, Math.min(95, Math.round(score)));
-    }
-
-    // 조건 분석
-    function getConditions(data) {
-      const expectLoan = ['7년 이상'].includes(data.business_career)
-        ? data.credit_loan + data.mortgage_loan
-        : data.credit_loan;
-
-      const unavailable = data.overdue === '있음' ||
-        (['7년 이상'].includes(data.business_career) && expectLoan > data.average_sales * 1.5);
-
-      const isHighCredit = data.NICE >= 750 && data.KCB >= 700;
-      const isSmart = [data.kiosk, data.delivery, data.reservation, data.online_sales].includes('사용함') || data.online_sales === '예';
-      const isGrowth = data.sales_growth === '예';
-      const hasTech = data.patent_count > 0;
-      const hasMachine = data.has_machine === '보유함';
-
-      let salesLevel;
-      if (data.average_sales < 2000) salesLevel = 'low';
-      else if (data.average_sales < 8000) salesLevel = 'mid';
-      else salesLevel = 'high';
-
-      return { unavailable, isHighCredit, isSmart, isGrowth, hasTech, hasMachine, salesLevel, expectLoan };
-    }
-
-    // 한도 계산
-    function calculateLimit(data) {
-      const conditions = getConditions(data);
-      if (conditions.unavailable) return 0;
-
-      let rate = 0.25; // 기본
-
-      // 스마트상점 우대
-      if (conditions.isSmart && conditions.isHighCredit) rate = 0.6;
-      else if (conditions.isSmart) rate = 0.4;
-      // 매출 규모별
-      else if (conditions.salesLevel === 'low') rate = conditions.isHighCredit ? 0.3 : 0.25;
-      else if (conditions.salesLevel === 'mid') rate = conditions.isHighCredit ? 0.5 : 0.35;
-      else rate = conditions.isHighCredit ? 0.45 : 0.3;
-
-      // 우대 가산
-      if (conditions.hasTech) rate += 0.1;
-      if (conditions.isGrowth) rate += 0.05;
-      if (conditions.hasMachine) rate += 0.05;
-
-      return Math.floor(data.average_sales * rate);
-    }
-
-    // 추천 상품 선정 (소상공인/중소기업 분류)
-    function getRecommendedProducts(data) {
-      const conditions = getConditions(data);
-      const products = [];
-      const limit = calculateLimit(data);
-      const isSmall = isSmallBusiness(data);
-      
-      // 기업 유형 저장
-      data.businessCategory = isSmall ? '소상공인' : '중소기업';
-
-      if (isSmall) {
-        // ============ 소상공인 추천 ============
-        
-        // 저신용자 (NCB 839점 이하)
-        if (data.NICE <= 839) {
-          products.push({
-            ...smallBizFunds.low_credit,
-            estimatedLimit: 3000,
-            estimatedRate: smallBizFunds.low_credit.minRate
-          });
-          // 미소금융도 추천
-          if (data.NICE <= 749) {
-            products.push({
-              ...smallBizFunds.miso_finance,
-              estimatedLimit: 7000,
-              estimatedRate: smallBizFunds.miso_finance.minRate
-            });
-          }
-        }
-
-        // 스마트 소상공인 (배달앱, 키오스크 등)
-        if (conditions.isSmart) {
-          products.push({
-            ...smallBizFunds.innovation_growth,
-            estimatedLimit: Math.min(limit * 1.5, 20000),
-            estimatedRate: smallBizFunds.innovation_growth.minRate
-          });
-        }
-
-        // 청년 소상공인 (업력 3년 미만)
-        if (['1년 미만', '3년 미만'].includes(data.business_career)) {
-          products.push({
-            ...smallBizFunds.youth_employ,
-            estimatedLimit: Math.min(limit, 7000),
-            estimatedRate: smallBizFunds.youth_employ.minRate
-          });
-        }
-
-        // 제조업 소공인
-        if (data.industry === '제조업') {
-          products.push({
-            ...smallBizFunds.small_manufacturer,
-            estimatedLimit: Math.min(limit * 2, 50000),
-            estimatedRate: smallBizFunds.small_manufacturer.minRate
-          });
-        }
-
-        // 매출 성장 소상공인
-        if (conditions.isGrowth) {
-          products.push({
-            ...smallBizFunds.innovation_growth,
-            estimatedLimit: Math.min(limit * 1.3, 20000),
-            estimatedRate: smallBizFunds.innovation_growth.minRate - 0.2
-          });
-        }
-
-        // 기본: 일반경영안정자금 (모든 소상공인)
-        products.push({
-          ...smallBizFunds.general_stable,
-          estimatedLimit: Math.min(limit, 7000),
-          estimatedRate: smallBizFunds.general_stable.minRate
-        });
-
-        // 지역신보 보증 추천
-        if (data.NICE >= 700) {
-          products.push({
-            ...smallBizFunds.local_guarantee,
-            estimatedLimit: Math.min(limit * 1.5, 30000),
-            estimatedRate: smallBizFunds.local_guarantee.minRate
-          });
-        }
-
-      } else {
-        // ============ 중소기업 추천 ============
-
-        // 특허/기술 보유 기업
-        if (conditions.hasTech) {
-          products.push({
-            ...smeFunds.tech_commercialize,
-            estimatedLimit: Math.min(limit * 3, 300000),
-            estimatedRate: smeFunds.tech_commercialize.minRate
-          });
-          // 기술보증기금도 추천
-          products.push({
-            ...smeFunds.kibo_tech,
-            estimatedLimit: Math.min(limit * 2, 100000),
-            estimatedRate: smeFunds.kibo_tech.minRate
-          });
-        }
-
-        // 업력 7년 미만 창업기업
-        if (['1년 미만', '3년 미만', '5년 미만', '7년 미만'].includes(data.business_career)) {
-          products.push({
-            ...smeFunds.startup_base,
-            estimatedLimit: Math.min(limit * 2, 60000),
-            estimatedRate: smeFunds.startup_base.minRate
-          });
-          // 청년 창업자
-          if (['1년 미만', '3년 미만'].includes(data.business_career)) {
-            products.push({
-              ...smeFunds.youth_startup,
-              estimatedLimit: Math.min(limit, 20000),
-              estimatedRate: smeFunds.youth_startup.minRate
-            });
-          }
-          // 창업기업육성 보증
-          products.push({
-            ...smeFunds.startup_nest,
-            estimatedLimit: Math.min(limit * 1.5, 50000),
-            estimatedRate: smeFunds.startup_nest.minRate
-          });
-        }
-
-        // 스마트공장 도입 기업
-        if (conditions.hasMachine || data.industry === '제조업') {
-          products.push({
-            ...smeFunds.smart_factory,
-            estimatedLimit: Math.min(limit * 3, 100000),
-            estimatedRate: smeFunds.smart_factory.minRate
-          });
-        }
-
-        // 수출 기업
-        if (conditions.isGrowth && data.average_sales >= 50000) {
-          products.push({
-            ...smeFunds.export_global,
-            estimatedLimit: Math.min(limit * 2, 100000),
-            estimatedRate: smeFunds.export_global.minRate
-          });
-        } else {
-          products.push({
-            ...smeFunds.export_domestic,
-            estimatedLimit: Math.min(limit, 50000),
-            estimatedRate: smeFunds.export_domestic.minRate
-          });
-        }
-
-        // 업력 7년 이상 성장기업
-        if (data.business_career === '7년 이상' && conditions.isGrowth) {
-          products.push({
-            ...smeFunds.innovation_growth_sme,
-            estimatedLimit: Math.min(limit * 3, 100000),
-            estimatedRate: smeFunds.innovation_growth_sme.minRate
-          });
-        }
-
-        // 기본: 신용보증기금 보증
-        products.push({
-          ...smeFunds.kodit_general,
-          estimatedLimit: Math.min(limit * 2, 80000),
-          estimatedRate: smeFunds.kodit_general.minRate
-        });
-      }
-
-      // 중복 제거 및 상위 5개만 반환
-      const uniqueProducts = products.filter((p, i, arr) => 
-        arr.findIndex(x => x.name === p.name) === i
-      ).slice(0, 5);
-
-      return uniqueProducts;
-    }
-
-    function formatLimit(val) {
-      if (val === 0) return '진행 불가';
-      if (val >= 100000) {
-        const 억 = Math.floor(val / 10000);
-        return `${억}억원`;
-      }
-      if (val >= 10000) {
-        const 억 = Math.floor(val / 10000);
-        const 만 = val % 10000;
-        return 만 > 0 ? `${억}억 ${만.toLocaleString()}만원` : `${억}억원`;
-      }
-      return `${val.toLocaleString()}만원`;
-    }
-
-    // ============ 상환 계산기 ============
-    function toggleCalculator() {
-      const body = document.getElementById('calcBody');
-      const arrow = document.getElementById('calcArrow');
-      body.classList.toggle('open');
-      arrow.classList.toggle('open');
-    }
-
-    function calculateSchedule() {
-      const amount = parseInt(document.getElementById('calcAmount').value.replace(/,/g, '')) || 0;
-      const rate = parseFloat(document.getElementById('calcRate').value) || 0;
-      const grace = parseInt(document.getElementById('calcGrace').value) || 0;
-      const period = parseInt(document.getElementById('calcPeriod').value) || 0;
-      const method = document.getElementById('calcMethod').value;
-
-      if (amount <= 0 || rate <= 0 || period <= 0) {
-        alert('올바른 값을 입력해주세요.');
-        return;
-      }
-
-      const monthlyRate = rate / 100 / 12;
-      const totalMonths = period * 12;
-      const graceMonths = grace * 12;
-      const repayMonths = totalMonths - graceMonths;
-
-      let schedule = [];
-      let totalInterest = 0;
-      let totalPayment = 0;
-      let balance = amount;
-
-      // 거치기간
-      for (let i = 1; i <= graceMonths; i++) {
-        const interest = Math.round(balance * monthlyRate);
-        totalInterest += interest;
-        totalPayment += interest;
-        schedule.push({
-          month: i,
-          principal: 0,
-          interest: interest,
-          payment: interest,
-          balance: balance
-        });
-      }
-
-      // 상환기간
-      if (method === 'equal_principal_interest') {
-        // 원리금균등
-        const monthlyPayment = Math.round(amount * monthlyRate * Math.pow(1 + monthlyRate, repayMonths) / (Math.pow(1 + monthlyRate, repayMonths) - 1));
-        
-        for (let i = graceMonths + 1; i <= totalMonths; i++) {
-          const interest = Math.round(balance * monthlyRate);
-          const principal = monthlyPayment - interest;
-          balance = Math.max(0, balance - principal);
-          totalInterest += interest;
-          totalPayment += monthlyPayment;
-          schedule.push({
-            month: i,
-            principal: principal,
-            interest: interest,
-            payment: monthlyPayment,
-            balance: Math.round(balance)
-          });
-        }
-      } else {
-        // 원금균등
-        const monthlyPrincipal = Math.round(amount / repayMonths);
-        
-        for (let i = graceMonths + 1; i <= totalMonths; i++) {
-          const interest = Math.round(balance * monthlyRate);
-          const principal = i === totalMonths ? balance : monthlyPrincipal;
-          balance = Math.max(0, balance - principal);
-          const payment = principal + interest;
-          totalInterest += interest;
-          totalPayment += payment;
-          schedule.push({
-            month: i,
-            principal: principal,
-            interest: interest,
-            payment: payment,
-            balance: Math.round(balance)
-          });
-        }
-      }
-
-      // 결과 표시
-      const resultDiv = document.getElementById('calcResult');
-      resultDiv.classList.add('show');
-
-      document.getElementById('totalInterest').textContent = formatMoney(totalInterest);
-      document.getElementById('totalPayment').textContent = formatMoney(totalPayment);
-      document.getElementById('monthlyAvg').textContent = formatMoney(Math.round(totalPayment / totalMonths));
-
-      // 스케줄 테이블
-      const tableBody = document.getElementById('scheduleBody');
-      tableBody.innerHTML = schedule.map(s => `
-        <tr>
-          <td>${s.month}회차</td>
-          <td>${s.principal.toLocaleString()}</td>
-          <td>${s.interest.toLocaleString()}</td>
-          <td style="font-weight:600;">${s.payment.toLocaleString()}</td>
-          <td>${s.balance.toLocaleString()}</td>
-        </tr>
-      `).join('');
-    }
-
-    // ============ 결과 표시 ============
-    function showResult() {
-      const conditions = getConditions(userData);
-      const limit = calculateLimit(userData);
-      const rate = calculateRate(userData.NICE);
-      const probability = calculateProbability(userData);
-      const recommendedProducts = getRecommendedProducts(userData);
-      const circumference = 2 * Math.PI * 54;
-      const strokeDasharray = `${(probability / 100) * circumference} ${circumference}`;
-
-      // 분석 결과를 전역 변수에 저장
-      const bizCategory = userData.businessCategory || '소상공인';
-      analysisResult = {
-        limit: limit,
-        rate: rate,
-        probability: probability,
-        products: recommendedProducts,
-        bizCategory: bizCategory
-      };
-
-      const chatMessages = document.getElementById('chatMessages');
-      const resultCard = document.createElement('div');
-      resultCard.className = 'result-card';
-
-      if (conditions.unavailable) {
-        resultCard.innerHTML = `
-          <div class="result-header">
-            <div class="result-badge" style="background:linear-gradient(135deg,#ef4444,#f87171);">분석 완료</div>
-            <h2>'${userData.company}'</h2>
-            <p>정책자금 조달 가능성 분석 결과</p>
+        <div class="prob-hero">
+          <div class="prob-hero-badge-row"><span class="prob-hero-badge">📊 빅데이터 초정밀 분석 완료</span></div>
+          <div class="prob-hero-label">승인 가능성</div>
+          <div class="prob-hero-num">
+            <span class="prob-hero-value" id="probCounter" data-val="${r.probability}">0</span>
+            <span class="prob-hero-unit">%</span>
           </div>
-          <div class="result-unavailable">
-            <div class="unavailable-icon">😔</div>
-            <h3>현재 진행이 어렵습니다</h3>
-            <p>${userData.overdue === '있음' ? '연체/체납 해소 후 다시 시도해주세요.\n\n정책자금은 연체 이력이 있으면 이용이 불가합니다.' : '대출 규모가 매출 대비 높습니다.\n\n기존 부채를 일부 상환 후 재신청을 권장드립니다.'}</p>
-          </div>
-          <div class="result-notice">
-            💡 <strong>Tip:</strong> 연체 해소 또는 부채 정리 후 재진단 받으시면<br>정책자금 이용이 가능할 수 있습니다.
-          </div>
-          <button class="restart-btn" onclick="resetChat()">
-            <span>다시 분석하기</span>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15" />
-            </svg>
-          </button>
-        `;
-      } else {
-        // 인사이트 생성
-        let insights = [];
-        
-        // 기업 분류 인사이트 (맨 앞에 추가)
-        const bizCategory = userData.businessCategory || '소상공인';
-        if (bizCategory === '소상공인') {
-          insights.push({ icon: '🏪', text: `소상공인 분류 - 소진공/지역신보/서민금융 자금 대상`, type: 'positive' });
-        } else {
-          insights.push({ icon: '🏢', text: `중소기업 분류 - 중진공/신보/기보 자금 대상`, type: 'positive' });
-        }
-        
-        if (conditions.isHighCredit) insights.push({ icon: '✅', text: '신용등급 우수 - 최저금리 적용 가능', type: 'positive' });
-        else insights.push({ icon: '💡', text: '신용점수 개선 시 금리 우대 가능', type: 'warning' });
-        
-        if (conditions.salesLevel === 'high') insights.push({ icon: '✅', text: '매출규모 양호 - 고한도 이용 가능', type: 'positive' });
-        else if (conditions.salesLevel === 'mid') insights.push({ icon: '📈', text: '성장단계 기업 - 성장지원자금 추천', type: '' });
-        else insights.push({ icon: '💡', text: '소규모 사업자 - 경영안정자금 추천', type: '' });
+          <div class="prob-hero-bar"><div class="prob-hero-bar-fill" id="probBar"></div></div>
+          <div class="prob-hero-status">${r.probability>=80?'🎉 승인 가능성 매우 높음':r.probability>=60?'👍 승인 가능성 양호':'📊 조건 개선 권장'}</div>
+          <p class="prob-hero-desc">${gaugeExp}</p>
+        </div>
+      </div>
 
-        if (conditions.hasTech) insights.push({ icon: '🏆', text: `특허 ${userData.patent_count}건 보유 - 기술사업화자금 우대`, type: 'positive' });
-        if (conditions.isGrowth) insights.push({ icon: '🚀', text: '매출 성장 기업 - 금리 0.2%p 우대 적용', type: 'positive' });
-        if (conditions.isSmart) insights.push({ icon: '📱', text: '스마트상점 인정 - 한도 60%까지 확대', type: 'positive' });
-        if (conditions.hasMachine) insights.push({ icon: '🏭', text: '설비 보유 - 시설자금/담보대출 가능', type: 'positive' });
+      <!-- 기업 분류 -->
+      <div class="r-section">
+        <div class="r-section-title"><span class="ico">🏷️</span> 기업 분류</div>
+        <div class="r-biz" style="background:${catColor};">${catIcon} ${r.bizCategory} 정책자금 대상</div>
+        <p class="r-biz-desc">${catDesc}</p>
+      </div>
 
-        // 핵심 인사이트 4개까지만 표시
-        const limitedInsights = insights.slice(0, 4);
-        const insightsHtml = limitedInsights.map(i => `<div class="insight-item ${i.type}"><span class="insight-icon">${i.icon}</span><span>${i.text}</span></div>`).join('');
+      <!-- 예상 한도·금리 -->
+      <div class="r-section">
+        <div class="r-section-title"><span class="ico">💰</span> 예상 한도·금리</div>
+        <div class="r-stats">
+          <div class="r-stat-item"><div class="r-stat-label">예상 최대 한도</div><div class="r-stat-value">${formatLimit(r.limit)}</div></div>
+          <div class="r-stat-item"><div class="r-stat-label">예상 적용 금리</div><div class="r-stat-value">${r.rate}%</div></div>
+        </div>
+        <p class="r-explain">💡 한도: ${limitExp}</p>
+        <p class="r-explain">💡 금리: ${rateExp}</p>
+      </div>
 
-        // 기업 분류 표시
-        const categoryColor = bizCategory === '소상공인' ? '#10b981' : '#6366f1';
-        const categoryIcon = bizCategory === '소상공인' ? '🏪' : '🏢';
+      <!-- 분석 인사이트 -->
+      <div class="r-section">
+        <div class="r-section-title"><span class="ico">✨</span> 분석 인사이트</div>
+        <div class="r-insights">${insHtml}</div>
+      </div>
 
-        // 추천 상품 HTML (새로운 양식 + 신청하기 버튼)
-        const productsHtml = recommendedProducts.map((p, idx) => `
-          <div class="recommend-item">
-            <div class="recommend-item-header">
-              <div class="recommend-item-number">${idx + 1}</div>
-              <div class="recommend-item-title-wrap">
-                <div class="recommend-item-title">${p.name}</div>
-                <div class="recommend-item-org">${p.org}</div>
-              </div>
-            </div>
-            <div class="recommend-item-body">
-              <div class="recommend-info-row">
-                <span class="recommend-info-label">자금대상</span>
-                <span class="recommend-info-value">${p.target}</span>
-              </div>
-              <div class="recommend-info-row">
-                <span class="recommend-info-label">최대한도</span>
-                <span class="recommend-info-value highlight">${formatLimit(p.maxLimit)}</span>
-              </div>
-              <div class="recommend-info-row">
-                <span class="recommend-info-label">최저금리</span>
-                <span class="recommend-info-value">${p.minRate}%</span>
-              </div>
-              <div class="recommend-info-row">
-                <span class="recommend-info-label">상환기간</span>
-                <span class="recommend-info-value">${p.period}</span>
-              </div>
-              <div class="recommend-estimate">
-                <div class="recommend-estimate-row">
-                  <span>예상 한도: <strong>${formatLimit(p.estimatedLimit)}</strong></span>
-                  <span>예상 금리: <strong>${p.estimatedRate.toFixed(2)}%</strong></span>
-                </div>
-                <button class="cta-item-btn" onclick='openModal("consultModal", ${JSON.stringify(p).replace(/'/g, "&#39;")})'>
-                  📞 무료자문상담
-                </button>
-              </div>
-            </div>
-          </div>
-        `).join('');
+      <!-- 추천 정책자금 -->
+      <div class="r-section">
+        <div class="r-section-title"><span class="ico">📌</span> 추천 정책자금 ${r.products.length}건</div>
+        ${prodsSection}
+      </div>
 
-        resultCard.innerHTML = `
-          <div class="result-header fade-in-section instant">
-            <div class="result-badge">분석 완료</div>
-            <h2>'${userData.company}'</h2>
-            <p>정책자금 조달 가능성 분석 결과</p>
-          </div>
+      <!-- CTA -->
+      <div class="r-section">
+        <div class="r-cta">
+          <div class="r-cta-notice"><span class="r-cta-notice-icon">🔍</span><div class="r-cta-notice-text"><strong>구체적인 자금내용 및 진행가능여부</strong>를<br>무료로 확인하실 수 있습니다</div></div>
+          <button class="btn-primary indigo" onclick="openConsultModal()">✅ 승인가능여부 조회 · 무료상담</button>
+          <div class="r-cta-benefits"><div class="r-cta-benefit">✓ 맞춤 추천 정책자금 상세 안내</div><div class="r-cta-benefit">✓ 실제 승인 가능성 정밀 분석</div><div class="r-cta-benefit">✓ 신청 서류 및 절차 안내</div></div>
+        </div>
+      </div>
 
-          <!-- 기업 분류 배지 -->
-          <div class="biz-category-badge fade-in-section instant" style="background: ${categoryColor};">
-            <span class="biz-category-icon">${categoryIcon}</span>
-            <span class="biz-category-text">${bizCategory} 정책자금 추천</span>
-            <span class="biz-category-sub">${bizCategory === '소상공인' ? '(소진공·지역신보·서민금융)' : '(중진공·신보·기보)'}</span>
-          </div>
+      <!-- 입력 정보 -->
+      <div class="r-section">
+        <details class="collapse-box"><summary>📝 입력 정보 확인</summary><div class="collapse-box-content"><div class="input-summary-grid">${summaryHtml}</div></div></details>
+      </div>
 
-          <!-- 통계 배너 -->
-          <div class="stats-banner fade-in-section instant">
-            <div class="stats-banner-title">📊 2025년 정부 정책금융 현황</div>
-            <div class="stats-banner-items">
-              <div class="stats-banner-item">
-                <div class="stats-banner-value">26.5조</div>
-                <div class="stats-banner-label">총 지원규모</div>
-              </div>
-              <div class="stats-banner-item">
-                <div class="stats-banner-value">2.98%</div>
-                <div class="stats-banner-label">평균 금리</div>
-              </div>
-              <div class="stats-banner-item">
-                <div class="stats-banner-value">${bizCategory === '소상공인' ? '3.77조' : '4.5조'}</div>
-                <div class="stats-banner-label">${bizCategory} 배정</div>
-              </div>
-            </div>
-          </div>
-          
-          <div class="result-gauge fade-in-section instant">
-            <svg viewBox="0 0 120 120">
-              <circle cx="60" cy="60" r="54" class="gauge-bg" />
-              <circle cx="60" cy="60" r="54" class="gauge-fill" style="stroke-dasharray: ${strokeDasharray}" />
-            </svg>
-            <div class="gauge-text">
-              <span class="gauge-value">${probability}</span>
-              <span class="gauge-unit">%</span>
-            </div>
-            <div class="gauge-label">${probability >= 80 ? '승인 가능성 매우 높음 🎉' : probability >= 60 ? '승인 가능성 양호 👍' : '조건 개선 권장 📊'}</div>
-          </div>
-
-          <div class="result-stats fade-in-section instant">
-            <div class="stat-card">
-              <div class="stat-icon">💰</div>
-              <div class="stat-label">예상 최대 한도</div>
-              <div class="stat-value">${formatLimit(limit)}</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-icon">📈</div>
-              <div class="stat-label">예상 적용 금리</div>
-              <div class="stat-value">${rate}%</div>
-            </div>
-          </div>
-
-          <!-- 간단한 인사이트 (핵심만) -->
-          <div class="result-insights fade-in-section">
-            <h4>✨ 간단 분석 피드백</h4>
-            <div class="insight-list">${insightsHtml}</div>
-          </div>
-
-          <!-- CTA 섹션 -->
-          <div class="cta-section fade-in-section">
-            <div class="cta-notice">
-              <div class="cta-notice-icon">🔍</div>
-              <div class="cta-notice-text">
-                <strong>구체적인 자금내용 및 진행가능여부</strong>를<br>
-                무료로 확인하실 수 있습니다
-              </div>
-            </div>
-            
-            <!-- 메인 CTA 버튼들 -->
-            <div class="cta-buttons">
-              <button class="cta-main-btn" onclick="openModal('consultModal')">
-                ✅ 승인가능여부 조회
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M5 12h14M12 5l7 7-7 7"/>
-                </svg>
-              </button>
-              <button class="cta-sub-btn" onclick="openModal('consultModal')">
-                📞 무료자문상담
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/>
-                </svg>
-              </button>
-            </div>
-            
-            <div class="cta-benefits">
-              <div class="cta-benefit-item">✓ 맞춤 추천 정책자금 상세 안내</div>
-              <div class="cta-benefit-item">✓ 실제 승인 가능성 정밀 분석</div>
-              <div class="cta-benefit-item">✓ 신청 서류 및 절차 안내</div>
-            </div>
-          </div>
-
-          <div class="result-notice fade-in-section">
-            ※ 본 결과는 입력 정보 기반 예상치이며, 실제 심사 결과와 다를 수 있습니다.<br>
-            ※ 정확한 한도/금리 및 추천 상품은 상담을 통해 확인 가능합니다.
-          </div>
-
-          <button class="restart-btn fade-in-section" onclick="resetChat()">
-            <span>다시 분석하기</span>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15" />
-            </svg>
-          </button>
-        `;
+      <div class="r-notice">※ 본 결과는 빅데이터 기반 예상치이며 실제 심사 결과와 다를 수 있습니다.<br>정확한 한도·금리는 전문 상담을 통해 확인하세요.</div>
+    `;
+  }
+  document.getElementById('resultOverlay').classList.add('show');
+  // Animate probability counter
+  if(r.available){
+    setTimeout(()=>{
+      const target=r.probability;
+      const el=document.getElementById('probCounter');
+      const bar=document.getElementById('probBar');
+      if(bar)bar.style.width=target+'%';
+      if(!el)return;
+      const dur=1800;const t0=performance.now();
+      function tick(now){
+        const p=Math.min((now-t0)/dur,1);
+        const ease=1-Math.pow(1-p,3);
+        const v=Math.round(target*ease);
+        el.textContent=v;
+        el.dataset.val=v;
+        if(p<1)requestAnimationFrame(tick);
+        else{el.textContent=target;el.dataset.val=target;}
       }
+      requestAnimationFrame(tick);
+    },400);
+  }
+}
 
-      chatMessages.appendChild(resultCard);
-      
-      // 결과 카드의 상단이 보이도록 스크롤 (CTA가 아닌 분석결과부터 보이게)
-      setTimeout(() => {
-        resultCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 100);
-      
-      // 스크롤 페이드인 애니메이션 초기화
-      initScrollAnimation();
-    }
+function closeResult(){document.getElementById('resultOverlay').classList.remove('show');}
+function resetAll(){currentStep=0;userData={};analysisResult={};questions=getQuestions('');document.getElementById('slidesContainer').innerHTML='';document.getElementById('progressFill').style.width='0%';showSlide(0);}
 
-    // ============ 스크롤 페이드인 애니메이션 ============
-    function initScrollAnimation() {
-      const fadeElements = document.querySelectorAll('.fade-in-section:not(.instant)');
-      
-      const observerOptions = {
-        root: document.getElementById('chatMessages'),
-        rootMargin: '0px 0px -50px 0px',
-        threshold: 0.1
-      };
-      
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('visible');
-            observer.unobserve(entry.target);
-          }
-        });
-      }, observerOptions);
-      
-      fadeElements.forEach(el => observer.observe(el));
-    }
+// ===== Modals =====
+function openConsultModal(){document.getElementById('consultModal').classList.add('show');}
+function openExpertModal(){document.getElementById('expertModal').classList.add('show');}
+function openPrivacy(){document.getElementById('privacyModal').classList.add('show');}
+function closeModal(id){document.getElementById(id).classList.remove('show');}
+function closeAllModals(){['successModal','consultModal','expertModal','resultOverlay'].forEach(id=>document.getElementById(id).classList.remove('show'));}
+document.querySelectorAll('.modal-backdrop').forEach(m=>{m.addEventListener('click',function(e){if(e.target===this)this.classList.remove('show');});});
 
-    // ============ 초기화 ============
-    function resetChat() {
-      currentStep = 0;
-      questions = getQuestions('');
-      userData = {
-        company: '', business_type: '', industry: '', business_career: '',
-        employee_count: 0, patent_count: 0, has_machine: '', online_sales: '', offline_store: '',
-        kiosk: '', delivery: '', reservation: '', average_sales: 0,
-        sales_growth: '', mortgage_loan: 0, credit_loan: 0, KCB: 0, NICE: 0, overdue: '', recovery_history: ''
-      };
+// ===== Form =====
+function submitForm(e){
+  e.preventDefault();if(isSubmitting)return;
+  const name=document.getElementById('clientName').value.trim();
+  const p1=document.getElementById('phone1').value,p2=document.getElementById('phone2').value.trim(),p3=document.getElementById('phone3').value.trim();
+  if(!name){alert('성함을 입력해주세요.');return;}
+  if(!p2||!p3||p2.length<3||p3.length<4){alert('연락처를 정확히 입력해주세요.');return;}
+  if(!document.getElementById('agreePrivacy').checked){alert('개인정보취급방침에 동의해주세요.');return;}
+  const phone=`${p1}-${p2}-${p3}`,uk=`policy_submitted_${phone}`;
+  if(localStorage.getItem(uk)){alert('이미 접수된 기록이 있습니다.');return;}
+  isSubmitting=true;const sb=document.getElementById('submitBtn');sb.disabled=true;sb.textContent='전송 중...';
+  const now=new Date(),fd=new FormData();
+  fd.append('작업 날짜',now.toLocaleDateString('ko-KR'));fd.append('작업 시간',now.toLocaleTimeString('ko-KR'));
+  fd.append('성함(이름)',name);fd.append('연락처',phone);
+  fd.append('사업장명(상호)',userData.company||'');fd.append('사업자 형태',userData.business_type||'');
+  fd.append('업종',userData.industry||'');fd.append('사업자 업력',userData.business_career||'');
+  fd.append('상시 근로자 수',userData.employee_count||0);
+  fd.append('기업 분류 (자동 판단)',analysisResult.bizCategory||'');
+  fd.append('특허 보유 수',userData.patent_count||0);
+  fd.append('기계/설비 보유',userData.has_machine||'');fd.append('온라인 판매 여부',userData.online_sales||'');
+  fd.append('오프라인 매장',userData.offline_store||'');fd.append('키오스크 사용',userData.kiosk||'');
+  fd.append('배달앱 사용',userData.delivery||'');fd.append('숙박앱 사용',userData.reservation||'');
+  fd.append('연평균 매출액',userData.average_sales?`${userData.average_sales}만원`:'');
+  fd.append('2년간 10%이상 성장',userData.sales_growth||'');
+  fd.append('담보대출 잔액',userData.mortgage_loan?`${userData.mortgage_loan}만원`:'0');
+  fd.append('신용대출 잔액',userData.credit_loan?`${userData.credit_loan}만원`:'0');
+  fd.append('KCB 신용점수',userData.KCB||'');fd.append('NICE 신용점수',userData.NICE||'');
+  fd.append('연체/체납 여부',userData.overdue||'');
+  fd.append('연체 상세내용',userData.overdue_detail||'');
+  fd.append('개인회생 파산 신용회복 이력',userData.recovery_history||'');
+  fd.append('회생/파산 상세내용',userData.recovery_detail||'');
+  fd.append('창업시기',userData.startup_date||'');
+  fd.append('예상 대출 한도',analysisResult.limit?formatLimit(analysisResult.limit):'');
+  fd.append('예상 금리',analysisResult.rate?`${analysisResult.rate}%`:'');
+  fd.append('추천 상품 목록',analysisResult.products?analysisResult.products.map(p=>p.name).join(', '):'');
+  fd.append('분석 일시',now.toLocaleString('ko-KR'));fd.append('개인정보수집동의','동의');
+  fd.append('유입경로',sessionStorage.getItem('first_referrer')||'UNKNOWN');
+  fetch(SHEET_URL,{method:'POST',body:fd})
+  .then(()=>{localStorage.setItem(uk,'submitted');closeModal('consultModal');document.getElementById('successModal').classList.add('show');document.getElementById('consultForm').reset();})
+  .catch(()=>alert('오류가 발생했습니다.'))
+  .finally(()=>{isSubmitting=false;sb.disabled=false;sb.textContent='정책자금 상담 신청하기';});
+}
+['phone2','phone3'].forEach(id=>{const e=document.getElementById(id);if(e)e.addEventListener('input',function(){this.value=this.value.replace(/[^0-9]/g,'');});});
 
-      document.getElementById('chatMessages').innerHTML = '';
-      document.getElementById('chatInput').classList.remove('active');
-      document.getElementById('headerProgress').classList.remove('active');
-      document.getElementById('progressFill').style.width = '0%';
-      document.getElementById('progressText').textContent = '0%';
-      document.getElementById('userInput').value = '';
-      document.getElementById('sendBtn').disabled = true;
-
-      setTimeout(() => addBotMessage(questions[0]), 300);
-    }
-
-    // ============ 이벤트 리스너 ============
-    document.addEventListener('DOMContentLoaded', function() {
-      questions = getQuestions('');
-      setTimeout(() => addBotMessage(questions[0]), 500);
-
-      const userInput = document.getElementById('userInput');
-      const sendBtn = document.getElementById('sendBtn');
-
-      userInput.addEventListener('input', function(e) {
-        const type = this.dataset.type;
-        if (type === 'number') this.value = formatNumberInput(this.value);
-        sendBtn.disabled = !this.value.trim();
-      });
-
-      userInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter' && this.value.trim()) handleSubmit(this.value.trim());
-      });
-
-      sendBtn.addEventListener('click', function() {
-        const value = userInput.value.trim();
-        if (value) handleSubmit(value);
-      });
-    });
-  </script>
+// ===== Init =====
+document.addEventListener('DOMContentLoaded',function(){showSlide(0);});
+</script>
 </body>
 </html>
