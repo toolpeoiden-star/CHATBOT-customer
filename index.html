@@ -235,7 +235,8 @@ input,textarea,select{-webkit-user-select:text;user-select:text;}
 .anim-1{opacity:0;animation:fadeUp .6s .1s forwards;}.anim-2{opacity:0;animation:fadeUp .6s .3s forwards;}.anim-3{opacity:0;animation:fadeUp .6s .5s forwards;}.anim-4{opacity:0;animation:fadeUp .6s .7s forwards;}
 @media(max-width:380px){.intro-title{font-size:22px;}.question-title{font-size:calc(20px * var(--fs));}.number-input{font-size:calc(24px * var(--fs));}.fontsize-title{font-size:20px;}}
 @media(min-width:600px){.modal-backdrop,.gate-modal-backdrop{align-items:center;padding:24px;}.modal-sheet,.gate-sheet{border-radius:24px;}}
-@media(min-width:900px){body{background:#F4F4F4;}.app{height:90vh;max-height:820px;margin:5vh auto;border-radius:24px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.08);}.result-overlay{border-radius:24px;overflow:hidden;}}
+.pc-footer{display:none;}
+@media(min-width:900px){body{background:#F4F4F4;}.app{height:90vh;max-height:820px;margin:5vh auto;border-radius:24px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.08);}.result-overlay{border-radius:24px;overflow:hidden;}.pc-footer{display:block;position:fixed;bottom:12px;left:0;right:0;text-align:center;font-size:11px;color:#B0B8C1;letter-spacing:-.2px;z-index:0;}}
 </style>
 </head>
 <body>
@@ -275,6 +276,7 @@ input,textarea,select{-webkit-user-select:text;user-select:text;}
 <div class="modal-backdrop" id="privacyModal"><div class="modal-sheet privacy-sheet"><div class="modal-handle"></div><h3 style="font-size:18px;font-weight:700;margin-bottom:16px;">개인정보취급방침</h3><h4>가. 수집하는 개인정보 항목</h4><p>성명, 연락처, 사업장명, 업종, 연매출액 규모</p><h4>나. 수집 및 이용목적</h4><ul><li>전화 및 문자 상담·안내</li><li>정책자금 정보 제공</li></ul><h4>다. 보유 및 이용기간</h4><p>상담 완료 후 관계 법령 기간 또는 본인 요청 시까지</p><h4>라. 동의 거부 시</h4><p>필수 정보 동의 거부 시 상담이 제한될 수 있습니다.</p><button class="btn-primary" style="margin-top:20px;" onclick="closeModal('privacyModal')">확인</button></div></div>
 <div class="more-products-overlay" id="moreProductsModal" onclick="if(event.target===this)this.classList.remove('show')"><div class="more-products-sheet"><div class="more-products-header"><div class="more-products-handle"></div><div class="more-products-title">추천 정책자금 전체 보기</div><div class="more-products-desc">더 구체적인 조건에 따라 한도와 금리는 달라질 수 있어요!</div></div><div class="more-products-body" id="moreProductsBody"></div><div class="more-products-cta-box"><div class="more-products-cta-text">내 사업장에 <strong>정확히 맞는 자금</strong>을<br>전문가가 무료로 찾아드려요</div><button class="btn-primary" onclick="document.getElementById('moreProductsModal').classList.remove('show');openConsultModal();">📞 무료상담 받기</button></div></div></div>
 <div class="modal-backdrop" id="successModal"><div class="modal-sheet"><div class="modal-handle"></div><div class="success-content"><div class="success-icon">✅</div><h3>상담 신청 완료!</h3><p>전문 상담사가<br>빠른 시간 내 연락드리겠습니다.</p></div><button class="btn-primary" onclick="closeAllModals()">확인</button></div></div>
+<div class="pc-footer">상호: 벤처경영연구소 바름 · 대표: 김수용 · 사업자번호: 340-49-00912 · 주소: 서울특별시 강남구 봉은사로30길 68 6층</div>
 <script>
 const SHEET_URL='https://script.google.com/macros/s/AKfycbzEWx8mkK4IJdDQHnbFaJPzxT8EzW9dcCLnsQRGWf0swJhb0IipF0FKzxPw8ejUM_uj/exec';
 let currentStep=0,userData={},analysisResult={},isSubmitting=false,autoTimer=null,gateData={name:'',phone:''};
